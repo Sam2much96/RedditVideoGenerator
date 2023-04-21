@@ -63,13 +63,21 @@ def __getContentFromPost(submission) -> VideoScript:
     content = VideoScript(submission.url, submission.title, submission.id)
     print(f"Creating video for post: {submission.title}")
     print(f"Url: {submission.url}")
+    #print (content)
 
     failedAttempts = 0
-    for comment in submission.comments:
-        if(content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id)):
-            failedAttempts += 1
-        if (content.canQuickFinish() or (failedAttempts > 2 and content.canBeFinished())):
-            break
+    # Error catchers
+    #for comment in submission.comments:
+        #print (comment)
+        #print (markdown_to_text.markdown_to_text(comment.body), comment.id)
+        #print (comment.id)
+
+        #print ("222: ",content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id))
+
+        #if(content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id)):
+        #    failedAttempts += 1
+        #if (content.canQuickFinish() or (failedAttempts > 2 and content.canBeFinished())):
+        #    break
     return content
 
 def __getExistingPostIds(outputDir):

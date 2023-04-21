@@ -18,6 +18,9 @@ def getPostScreenshots(filePrefix, script):
 
 def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
     method = By.CLASS_NAME if (handle == "Post") else By.ID
+
+    print (method) # for debug purposes only
+
     search = wait.until(EC.presence_of_element_located((method, handle)))
     driver.execute_script("window.focus();")
 
