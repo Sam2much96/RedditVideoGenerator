@@ -13,6 +13,7 @@ CLIENT_SECRET = config["Reddit"]["CLIENT_SECRET"]
 USER_AGENT = config["Reddit"]["USER_AGENT"]
 SUBREDDIT = config["Reddit"]["SUBREDDIT"]
 
+
 def getContent(outputDir, postOptionCount) -> VideoScript:
     reddit = __getReddit()
     existingPostIds = __getExistingPostIds(outputDir)
@@ -37,10 +38,11 @@ def getContent(outputDir, postOptionCount) -> VideoScript:
         selectedPost = posts[postSelection]
         return __getContentFromPost(selectedPost)
 
+
 def getContentFromId(outputDir, submissionId) -> VideoScript:
     reddit = __getReddit()
     existingPostIds = __getExistingPostIds(outputDir)
-    
+
     if (submissionId in existingPostIds):
         print("Video already exists!")
         exit()
@@ -51,6 +53,7 @@ def getContentFromId(outputDir, submissionId) -> VideoScript:
         exit()
     return __getContentFromPost(submission)
 
+
 def __getReddit():
     return praw.Reddit(
         client_id=CLIENT_ID,
@@ -60,29 +63,33 @@ def __getReddit():
 
 
 def __getContentFromPost(submission) -> VideoScript:
-    content = VideoScript(submission.url, submission.title, submission.id)
+    content: VideoScript = VideoScript(
+        submission.url, submission.title, submission.id)
     print(f"Creating video for post: {submission.title}")
     print(f"Url: {submission.url}")
-    #print (content)
+    # print (content)
 
     failedAttempts = 0
     # Error catchers
-    #for comment in submission.comments:
-        #print (comment)
-        #print (markdown_to_text.markdown_to_text(comment.body), comment.id)
-        #print (comment.id)
 
-        #print ("222: ",content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id))
+    for comment in submission.comments:
+        print(
+            f" Comments: {markdown_to_text.markdown_to_text(comment.body), comment.id}")
 
-        #if(content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id)):
-        #    failedAttempts += 1
-        #if (content.canQuickFinish() or (failedAttempts > 2 and content.canBeFinished())):
-        #    break
+        # print(content.addCommentScene(
+        #    markdown_to_text.markdown_to_text(comment.body), comment.id))
+
+        if (content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id)):
+            failedAttempts += 1
+            print(f" failed attempts {failedAttempts}")
+        if (content.canQuickFinish() or (failedAttempts > 2 and content.canBeFinished())):
+            break
     return content
+
 
 def __getExistingPostIds(outputDir):
     files = os.listdir(outputDir)
-    # I'm sure anyone knowledgeable on python hates this. I had some weird 
+    # I'm sure anyone knowledgeable on python hates this. I had some weird
     # issues and frankly didn't care to troubleshoot. It works though...
     files = [f for f in files if os.path.isfile(outputDir+'/'+f)]
     return [re.sub(r'.*?-', '', file) for file in files]

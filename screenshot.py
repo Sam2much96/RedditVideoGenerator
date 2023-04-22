@@ -8,18 +8,21 @@ screenshotDir = "Screenshots"
 screenWidth = 400
 screenHeight = 800
 
+
 def getPostScreenshots(filePrefix, script):
     print("Taking screenshots...")
     driver, wait = __setupDriver(script.url)
     script.titleSCFile = __takeScreenshot(filePrefix, driver, wait)
     for commentFrame in script.frames:
-        commentFrame.screenShotFile = __takeScreenshot(filePrefix, driver, wait, f"t1_{commentFrame.commentId}")
+        commentFrame.screenShotFile = __takeScreenshot(
+            filePrefix, driver, wait, f"t1_{commentFrame.commentId}")
     driver.quit()
+
 
 def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
     method = By.CLASS_NAME if (handle == "Post") else By.ID
 
-    print (method) # for debug purposes only
+    # print (method) # for debug purposes only
 
     search = wait.until(EC.presence_of_element_located((method, handle)))
     driver.execute_script("window.focus();")
@@ -29,6 +32,7 @@ def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
     fp.write(search.screenshot_as_png)
     fp.close()
     return fileName
+
 
 def __setupDriver(url: str):
     options = webdriver.FirefoxOptions()
