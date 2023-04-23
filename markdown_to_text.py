@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from markdown import markdown
 import re
 
+
 def markdown_to_text(markdown_string):
     """ Converts a markdown string to plaintext """
 
@@ -12,6 +13,9 @@ def markdown_to_text(markdown_string):
     html = re.sub(r'<pre>(.*?)</pre>', ' ', html)
     html = re.sub(r'<code>(.*?)</code >', ' ', html)
     html = re.sub(r'~~(.*?)~~', ' ', html)
+
+    # remove emoticons and gifs
+    html = re.sub(r'<img[^>]+alt="([^"]*)"[^>]*>', r'\1', html)
 
     # extract text
     soup = BeautifulSoup(html, "html.parser")

@@ -9,6 +9,8 @@ screenWidth = 400
 screenHeight = 800
 
 
+# BUG: Breaks when Reddit loads Dark mode. Only works in Lightmode Reddit.
+
 def getPostScreenshots(filePrefix, script):
     print("Taking screenshots...")
     driver, wait = __setupDriver(script.url)

@@ -31,6 +31,7 @@ def getContent(outputDir, postOptionCount) -> VideoScript:
         if (autoSelect or len(posts) >= postOptionCount):
             break
 
+    "Collets User Input for Reddit Posts"
     if (autoSelect):
         return __getContentFromPost(posts[0])
     else:
@@ -63,8 +64,13 @@ def __getReddit():
 
 
 def __getContentFromPost(submission) -> VideoScript:
+
+    # initialize videoscript class
+
     content: VideoScript = VideoScript(
-        submission.url, submission.title, submission.id)
+        submission.url, submission.title,
+        submission.id, "", None)
+
     print(f"Creating video for post: {submission.title}")
     print(f"Url: {submission.url}")
     # print (content)
@@ -73,17 +79,29 @@ def __getContentFromPost(submission) -> VideoScript:
     # Error catchers
 
     for comment in submission.comments:
-        print(
-            f" Comments: {markdown_to_text.markdown_to_text(comment.body), comment.id}")
+        #print(
+        #    f" Comments: {markdown_to_text.markdown_to_text(comment.body), comment.id}")
 
-        # print(content.addCommentScene(
-        #    markdown_to_text.markdown_to_text(comment.body), comment.id))
+        # Generates Voice Overs for each comment and Stores
+        # Their info to Class variables for later use
+        addContent : bool = content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id)
 
-        if (content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id)):
+
+        if (addContent == True):
             failedAttempts += 1
-            print(f" failed attempts {failedAttempts}")
-        if (content.canQuickFinish() or (failedAttempts > 2 and content.canBeFinished())):
+            print(f" failed attempts? {failedAttempts}/ add content {addContent}")
+
+
+        if (content.canQuickFinish()) == True:
+            print (22222)
             break
+        if (failedAttempts > 3 and content.canBeFinished()):
+            print (111111)
+            break
+        if (failedAttempts == 7):
+            break
+
+    #print(f"content debug: {content}")  # content debug
     return content
 
 
