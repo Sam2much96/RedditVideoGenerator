@@ -1,7 +1,7 @@
 from moviepy.editor import *
 import reddit
 import screenshot
-from videoscript import  VoiceOver
+from videoscript import VoiceOver
 import time
 import subprocess
 import random
@@ -48,29 +48,26 @@ def createVideo():
 
     # Renders Video
     # This method is called below
-    def __createClip(screenShotFile, audioClip, audioClipDuration : int, marginSize):
+    def __createClip(screenShotFile, audioClip, audioClipDuration: int, marginSize):
         # save each audio clip file name
         # save each audio clip duration using Wave method
 
-
         imageClip = ImageClip(
             screenShotFile,
-            duration= audioClipDuration
+            duration=audioClipDuration
         ).set_position(("center", "center"))
         imageClip = imageClip.resize(width=(w-marginSize))
         videoClip = imageClip.set_audio(audioClip)
         videoClip.fps = 1
         return videoClip
 
-
-
     # Create video clips
     print("Editing clips together...")
-    
+
     # Holds all Generated CLips
     clips = []
     marginSize = int(config["Video"]["MarginSize"])
-    
+
     # Title Screen
     # These code blocs access sub classes variables
 
@@ -78,22 +75,22 @@ def createVideo():
         __createClip(
             script.titleSCFile,
             script.titleAudioClip,
-             marginSize,
-             script.titleAudioDuration
+            marginSize,
+            script.titleAudioDuration
         ))
-    
-    print (f"Audio Duration debug: {script.titleAudioDuration}")
+
+    print(f"Audio Duration debug: {script.titleAudioDuration}")
 
     # Comments
-    # These code blocs access sub classes vaariables 
+    # These code blocs access sub classes vaariables
     # referencees the franes sub list in VideoScript Class
     for comment in script.frames:
-        print (f"Audio Duration debug: {comment.audioClipDuration}")
+        print(f"Audio Duration debug: {comment.audioClipDuration}")
 
         clips.append(
             __createClip(
                 comment.screenShotFile,
-                comment.audioClip, 
+                comment.audioClip,
                 marginSize,
                 comment.audioClipDuration
 
@@ -139,12 +136,11 @@ def createVideo():
 
 if __name__ == "__main__":
 
-
     createVideo()
 
    # "Main Code"
    # try:
    #     createVideo()
    # except:
-        # handle any other type of exception
+    # handle any other type of exception
    #     print("Error: something went wrong")

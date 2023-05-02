@@ -50,17 +50,14 @@ def __setupDriver(url: str):
     config = configparser.ConfigParser()
     config.read('config.ini')
 
-    options = Options()  # webdriver.FirefoxOptions()
-    # default_profile_path = '/home/samuel/snap/firefox/common/.mozilla/firefox/7yg3hm8t.RedditVidGen'
+    options = Options()
     default_profile_path = config["Firefox"]["UserProfile"]
     profile = FirefoxProfile(default_profile_path)
-    # profile.set_preference("javascript.enabled", False)
 
     options.profile = profile
     options.headless = False
     options.enable_mobile = False
 
-    # profile = '/home/samuel/.mozilla/firefox/profiles.ini'
     driver = webdriver.Firefox(options=options)
 
     # driver = webdriver.Firefox(profile)
