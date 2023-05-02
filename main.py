@@ -140,11 +140,11 @@ def createVideo():
 if __name__ == "__main__":
 
 
-    #createVideo()
+    createVideo()
 
    # "Main Code"
-    try:
-        createVideo()
-    except:
+   # try:
+   #     createVideo()
+   # except:
         # handle any other type of exception
-        print("Error: something went wrong")
+   #     print("Error: something went wrong")

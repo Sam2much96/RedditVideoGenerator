@@ -1,7 +1,12 @@
+import configparser
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 
 # Config
 screenshotDir = "Screenshots"
@@ -22,11 +27,16 @@ def getPostScreenshots(filePrefix, script):
 
 
 def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
-    method = By.CLASS_NAME if (handle == "Post") else By.ID
+    if (handle == "Post"):
+        method = By.CLASS_NAME
+    else:
+        method = By.ID
 
     # print (method) # for debug purposes only
 
     search = wait.until(EC.presence_of_element_located((method, handle)))
+
+    # print(search)
     driver.execute_script("window.focus();")
 
     fileName = f"{screenshotDir}/{filePrefix}-{handle}.png"
@@ -37,10 +47,23 @@ def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
 
 
 def __setupDriver(url: str):
-    options = webdriver.FirefoxOptions()
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+
+    options = Options()  # webdriver.FirefoxOptions()
+    # default_profile_path = '/home/samuel/snap/firefox/common/.mozilla/firefox/7yg3hm8t.RedditVidGen'
+    default_profile_path = config["Firefox"]["UserProfile"]
+    profile = FirefoxProfile(default_profile_path)
+    # profile.set_preference("javascript.enabled", False)
+
+    options.profile = profile
     options.headless = False
     options.enable_mobile = False
+
+    # profile = '/home/samuel/.mozilla/firefox/profiles.ini'
     driver = webdriver.Firefox(options=options)
+
+    # driver = webdriver.Firefox(profile)
     wait = WebDriverWait(driver, 10)
 
     driver.set_window_size(width=screenWidth, height=screenHeight)
