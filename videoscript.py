@@ -138,8 +138,11 @@ class VoiceOver:
 
     bit_rate: int = engine.getProperty("rate")
     # duration : float =
+    Debug = False
+    format: str = ".mp3"
 
     def __init__(self, engine):
+        "Initialize Lifetimes"
 
         self.engine = engine
         self.voiceoverDir = voiceoverDir
@@ -151,6 +154,8 @@ class VoiceOver:
         self.created_files = mp3_files
         self.bit_rate = bit_rate
         self.duration = self.get_durationV2(self.filePath)
+        self.Debug = Debug
+        self.format = format
 
     # Generates Voice over
     # To Do:
@@ -159,7 +164,7 @@ class VoiceOver:
 
     def create_voice_over(self, fileName, text) -> AudioFileClip:
         print(f"Creating Voicever :{ fileName}")
-        self.filePath = f"{self.voiceoverDir}/{fileName}.mp3"
+        self.filePath = f"{self.voiceoverDir}/{fileName}{self.format}"
 
         self.engine.save_to_file(text, self.filePath)
 
@@ -241,7 +246,9 @@ class VoiceOver:
  # Gets the Duration of the VoiceOver file and Saves it to VideoScript Class
     def get_durationV2(mp3_file_path: str) -> float:
         try:
-            return ffmpeg.probe(mp3_file_path)['format']['duration']
+            print(ffmpeg.probe(mp3_file_path)['format'])  # Audio Format Debug
+            duration = ffmpeg.probe(mp3_file_path)['format']['duration']
+            return duration
 
         except ffmpeg.Error as error:
             print(f"Error: {str(error)}")
