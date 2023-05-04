@@ -2,12 +2,18 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver import DesiredCapabilities
+
+import time
+
 
 # Config
 screenshotDir = "Screenshots"
 screenWidth = 400
 screenHeight = 800
 
+
+# BUG: Breaks when Reddit loads Dark mode. Only works in Lightmode Reddit.
 
 def getPostScreenshots(filePrefix, script):
     print("Taking screenshots...")
@@ -35,13 +41,28 @@ def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
 
 
 def __setupDriver(url: str):
+
     options = webdriver.FirefoxOptions()
     options.headless = False
     options.enable_mobile = False
+    
     driver = webdriver.Firefox(options=options)
     wait = WebDriverWait(driver, 10)
 
     driver.set_window_size(width=screenWidth, height=screenHeight)
     driver.get(url)
-
+    time.sleep(3)
     return driver, wait
+
+
+
+def execute_with_retry(method, max_attempts):
+    e = None
+    for i in range (0, max_attempts):
+        try:
+            return method()
+        except Exception as e:
+            print(e)
+            time.sleep(1)
+    if e is not None:
+        raise e

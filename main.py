@@ -1,6 +1,7 @@
-from moviepy.editor import *
+from moviepy.editor import AudioFileClip, VideoClip
 import reddit
 import screenshot
+from videoscript import  VoiceOver
 import time
 import subprocess
 import random
@@ -21,9 +22,13 @@ def createVideo():
     # Get script from reddit
     # If a post id is listed, use that. Otherwise query top posts
     if (len(sys.argv) == 2):
+
+        # Creates a Video Script Class
         script = reddit.getContentFromId(outputDir, sys.argv[1])
     else:
         postOptionCount = int(config["Reddit"]["NumberOfPostsToSelectFrom"])
+
+        # Creates a Video Script Class
         script = reddit.getContent(outputDir, postOptionCount)
     fileName = script.getFileName()
 
@@ -41,25 +46,58 @@ def createVideo():
         audio=False).subclip(0, script.getDuration())
     w, h = backgroundVideo.size
 
-    def __createClip(screenShotFile, audioClip, marginSize):
+    # Renders Video
+    # This method is called below
+    def __createClip(screenShotFile, audioClip, audioClipDuration : int, marginSize):
+        # save each audio clip file name
+        # save each audio clip duration using Wave method
+        print ("fkjdgkndgkljkln") 
+
         imageClip = ImageClip(
             screenShotFile,
-            duration=audioClip.duration
+            duration= audioClipDuration
         ).set_position(("center", "center"))
         imageClip = imageClip.resize(width=(w-marginSize))
         videoClip = imageClip.set_audio(audioClip)
         videoClip.fps = 1
         return videoClip
 
+
+
     # Create video clips
     print("Editing clips together...")
+    
+    # Holds all Generated CLips
     clips = []
     marginSize = int(config["Video"]["MarginSize"])
-    clips.append(__createClip(script.titleSCFile,
-                 script.titleAudioClip, marginSize))
+    
+    # Title Screen
+    # These code blocs access sub classes variables
+
+    clips.append(
+        __createClip(
+            script.titleSCFile,
+            script.titleAudioClip,
+             marginSize,
+             script.titleAudioDuration
+        ))
+    
+    print (f"Audio Duration debug: {script.titleAudioDuration}")
+
+    # Comments
+    # These code blocs access sub classes vaariables 
+    # referencees the franes sub list in VideoScript Class
     for comment in script.frames:
-        clips.append(__createClip(comment.screenShotFile,
-                     comment.audioClip, marginSize))
+        print (f"Audio Duration debug: {comment.audioClipDuration}")
+
+        clips.append(
+            __createClip(
+                comment.screenShotFile,
+                comment.audioClip, 
+                marginSize,
+                comment.audioClipDuration
+
+            ))
 
     # Merge clips into single track
     contentOverlay = concatenate_videoclips(
@@ -85,17 +123,13 @@ def createVideo():
     )
     print(f"Video completed in {time.time() - startTime}")
 
-    # Preview in Ipython
-    clip = VideoFileClip(outputFile)
-    clip.ipython_display(width=280)
-
     # VLC
     # Preview in VLC for approval before uploading
-    # if (config["General"].getboolean("PreviewBeforeUpload")):
-    #     vlcPath = config["General"]["VLCPath"]
-    #     p = subprocess.Popen([vlcPath, outputFile])
-    #     print("Waiting for video review. Type anything to continue")
-    #    wait = input()
+    if (config["General"].getboolean("PreviewBeforeUpload")):
+        vlcPath = config["General"]["VLCPath"]
+        p = subprocess.Popen([vlcPath, outputFile])
+        print("Waiting for video review. Type anything to continue")
+        wait = input()
 
     print("Video is ready to upload!")
     print(f"Title: {script.title}  File: {outputFile}")
@@ -104,4 +138,13 @@ def createVideo():
 
 
 if __name__ == "__main__":
-    createVideo()
+
+
+   createVideo()
+
+   # "Main Code"
+   # try:
+   #     createVideo()
+   # except:
+        # handle any other type of exception
+   #     print("Error: something went wrong")
