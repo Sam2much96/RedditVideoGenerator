@@ -139,7 +139,7 @@ class VoiceOver:
     bit_rate: int = engine.getProperty("rate")
     # duration : float =
     Debug = False
-    format: str = ".mp3"
+    format: str = ".wav"
 
     def __init__(self, engine):
         "Initialize Lifetimes"
@@ -251,4 +251,4 @@ class VoiceOver:
             return duration
 
         except ffmpeg.Error as error:
-            print(f"Error: {str(error)}")
+            print(f"Error note: {str(error)}")
