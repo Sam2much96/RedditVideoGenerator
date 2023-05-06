@@ -1,4 +1,4 @@
-from moviepy.editor import AudioFileClip, VideoClip
+from moviepy.editor import *#AudioFileClip, VideoClip
 import reddit
 import screenshot
 from videoscript import  VoiceOver
@@ -48,14 +48,14 @@ def createVideo():
 
     # Renders Video
     # This method is called below
-    def __createClip(screenShotFile, audioClip, audioClipDuration : int, marginSize):
+    def __createClip(screenShotFile, audioClip, marginSize, duration):
         # save each audio clip file name
         # save each audio clip duration using Wave method
-        print ("fkjdgkndgkljkln") 
+        print(script) # for debug purposes only
 
         imageClip = ImageClip(
             screenShotFile,
-            duration= audioClipDuration
+            duration= duration #audioClip.duration
         ).set_position(("center", "center"))
         imageClip = imageClip.resize(width=(w-marginSize))
         videoClip = imageClip.set_audio(audioClip)
@@ -78,28 +78,28 @@ def createVideo():
         __createClip(
             script.titleSCFile,
             script.titleAudioClip,
-             marginSize,
-             script.titleAudioDuration
+            marginSize,
+            float(script.duration)
         ))
     
-    print (f"Audio Duration debug: {script.titleAudioDuration}")
+    print (f"Audio Duration debug 1: {script.duration}")
 
     # Comments
     # These code blocs access sub classes vaariables 
     # referencees the franes sub list in VideoScript Class
     for comment in script.frames:
-        print (f"Audio Duration debug: {comment.audioClipDuration}")
+        print (f"Audio Duration debug 2: {comment.duration}")
 
         clips.append(
             __createClip(
                 comment.screenShotFile,
                 comment.audioClip, 
                 marginSize,
-                comment.audioClipDuration
-
+                float(comment.duration)
             ))
 
     # Merge clips into single track
+    # Centralize Reddit Screenshots
     contentOverlay = concatenate_videoclips(
         clips).set_position(("center", "center"))
 
