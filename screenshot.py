@@ -1,9 +1,12 @@
+import configparser
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver import DesiredCapabilities
 
+
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 import time
 
 
@@ -26,14 +29,17 @@ def getPostScreenshots(filePrefix, script):
 
 
 def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
-    method = By.CLASS_NAME if (handle == "Post") else By.ID
+    if (handle == "Post"):
+        method = By.CLASS_NAME 
+    else:
+        method = By.ID
 
     # print (method) # for debug purposes only
 
     search = wait.until(EC.presence_of_element_located((method, handle)))
     driver.execute_script("window.focus();")
 
-    fileName = f"{screenshotDir}/{filePrefix}-{handle}.png"
+    fileName = f"{screenshotDir}\{filePrefix}-{handle}.png"
     fp = open(fileName, "wb")
     fp.write(search.screenshot_as_png)
     fp.close()
@@ -41,28 +47,25 @@ def __takeScreenshot(filePrefix, driver, wait, handle="Post"):
 
 
 def __setupDriver(url: str):
+    config = configparser.ConfigParser()
+    config.read('config.ini')
 
-    options = webdriver.FirefoxOptions()
+    options = Options()
+    default_profile_path = config["Firefox"]["UserProfile"]
+    profile = FirefoxProfile(default_profile_path)
+
+    options.profile = profile
     options.headless = False
     options.enable_mobile = False
-    
+
     driver = webdriver.Firefox(options=options)
+
+    # driver = webdriver.Firefox(profile)
     wait = WebDriverWait(driver, 10)
 
     driver.set_window_size(width=screenWidth, height=screenHeight)
     driver.get(url)
-    time.sleep(3)
+
     return driver, wait
 
 
-
-def execute_with_retry(method, max_attempts):
-    e = None
-    for i in range (0, max_attempts):
-        try:
-            return method()
-        except Exception as e:
-            print(e)
-            time.sleep(1)
-    if e is not None:
-        raise e
