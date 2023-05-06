@@ -4,7 +4,7 @@ import pyttsx3  # for voiceovers
 import os
 import subprocess
 import ffmpeg
-from mutagen.wave import WAVE
+#from mutagen.wave import WAVE
 import time
 MAX_WORDS_PER_COMMENT = 100
 MIN_COMMENTS_FOR_FINISH = 4
@@ -18,7 +18,7 @@ class VideoScript:
     titleSCFile = ""
     titleAudioDuration : int = 0
     url = ""
-    totalDuration = 0
+   
    
     # Holds frame data
     frames = []
@@ -32,6 +32,7 @@ class VideoScript:
     audioClip = AudioFileClip
 
     bit_rate : int = 0
+    totalDuration : float = 0
 
     def __init__(self, url, title, fileId, file_path, audioClip):
         self.fileName = f"{datetime.today().strftime('%Y-%m-%d')}-{fileId}"
@@ -48,6 +49,9 @@ class VideoScript:
         self.frames = []
         self.frame = []
 
+        # Set default duration
+        self.duration : float = 0 # Audio Clip duration
+        self.totalDuration : float = 0 # Audio Clip duration
 
     def canBeFinished(self) -> bool:
         return_value_2 : bool = (len(self.frames) > 0) and (self.totalDuration > MIN_DURATION)
@@ -61,9 +65,10 @@ class VideoScript:
         return return_value
         #return True
 
+    # Adds Comment Scene As a subclass
     def addCommentScene(self, text, commentId) -> bool:
+        print('adding comment scene')
         # Get the word count
-
         wordCount = len(text.split())
         print(wordCount)
 
@@ -71,7 +76,7 @@ class VideoScript:
             return True
 
         # Saves Comments Information to Sub Class List
-        self.frame = ScreenshotScene(
+        self.frame : self.ScreenShotScene = ScreenshotScene(
             text,
             commentId,
             self.__createVoiceOver(commentId, text)
@@ -79,12 +84,12 @@ class VideoScript:
 
         # create comment voice over for comments
         self.frame.audioClip = self.__createVoiceOver(commentId, text)
-
-        print(f"frame debug: {self.frames}")  # for debug purposes only
+        self.frame.duration = self.duration
+        print(f"frame debug: {self.frames} ")  # for debug purposes only
 
         # if (frame.audioClip == None):
         #    return True
-        #self.frames.append(frame)
+        self.frames.append(self.frame)
         return True
 
     def getDuration(self):
@@ -92,19 +97,22 @@ class VideoScript:
 
     def getFileName(self):
         return self.fileName
+    def getAudioDuration(self):
+        return self.duration
 
     # Call Creatyte VoiceOVer from main script
     def __createVoiceOver(self, name, text) -> AudioFileClip:
 
         # Creates a VoiceOver using pytts
-        audioClip = VoiceOver.create_voice_over_linux(
+        audioClip, self.duration = VoiceOver.create_voice_over_linux(
             VoiceOver, f"{self.fileName}-{name}", text)
 
 
         # Error checker 2
-        if (self.totalDuration + audioClip.duration > MAX_DURATION):
+        if (self.totalDuration + float(self.duration) > MAX_DURATION):
+            print (1111111)
             return None
-        self.totalDuration += audioClip.duration
+        self.totalDuration += float(self.duration)
         return audioClip
 
 
@@ -113,12 +121,13 @@ class ScreenshotScene:
     screenShotFile = ""
     commentId = ""
     audioClip : AudioFileClip
+    
 
     def __init__(self, text, commentId, audioClip) -> None:
         self.text = text
         self.commentId = commentId
         self.audioClip = audioClip
-
+        self.duration : float = 0
 
 class VoiceOver:
 
@@ -127,7 +136,7 @@ class VoiceOver:
     # (2) Implement gender and voice changes as Class parameters
 
     voiceoverDir = "Voiceovers"
-    engine = pyttsx3.init("sapi5", True)
+    engine = pyttsx3.init('sapi5', True)#pyttsx3.init("sapi5", True)
     filePath: str = ''
 
     confirmed_files: list[str] = ['']
@@ -135,8 +144,8 @@ class VoiceOver:
     created_files: list[str] = []
 
     bit_rate : int = engine.getProperty("rate")
-    duration : float = 0
     
+    duration = 0
     audioFile = "" # Holds the Output stream for the Audio File
     audioName : str = "" # Audio File name
     sizeBytes : int = 0
@@ -149,13 +158,13 @@ class VoiceOver:
         self.engine = engine
         self.voiceoverDir = voiceoverDir
         #self.engine.runAndWait()
-        self.engine.startLoop(True)
+        #self.engine.startLoop(True)
         self.filePath = filePath
         self.confirmed_files = confirmed_files
         self.created_files = created_files
         self.created_files = mp3_files
         self.bit_rate = bit_rate
-        self.duration = duration
+        self.duration = duration#self.get_durationV2(self.filePath)
         
         self.audioFile = audioFile
         self.audioName = audioName
@@ -167,8 +176,9 @@ class VoiceOver:
     # Generates Audio clip and stores generated clip data in Class Variables
 
 
-    def create_voice_over_linux(self, fileName, text) -> AudioFileClip:
+    def create_voice_over_linux(self, fileName, text): # -> AudioFileClip, float:
         print(f"Creating Voicever :{ fileName}")
+        print(self.engine)
         absolute_path = r"C:\RedditVideoGenerator"  
         concat_filePath = f"{absolute_path}\{self.voiceoverDir}\{fileName}{self.format}"
         
@@ -177,21 +187,21 @@ class VoiceOver:
         self.engine.save_to_file(text, self.filePath)
 
         self.engine.runAndWait()
-
+        
         
         if (self.locate_or_generate_mp3(self)):
 
             # Store File
             self.created_files.append( self.filePath)
             
-            self.duration = self.get_durationV2(self ,self.filePath)
+            self.duration = self.get_durationV2(self.filePath)
 
             print (f"Duration debug 2: {self.duration} / Path: {self.filePath} / Cr8ted Files: {self.created_files}") # for debug purposes
 
         
             # Loads the Generated audo clip && returns it
             # Breaks here because audio file isnt generated
-            return AudioFileClip(self.filePath) # filePath # audioName
+            return AudioFileClip(self.filePath), self.duration # filePath # audioName
 
     # Locates of Generates the Voiceover file
     def locate_or_generate_mp3(self) -> bool:
@@ -209,9 +219,9 @@ class VoiceOver:
         while not os.path.isfile(self.filePath):
             print(f"File not found at path: {self.filePath}, generating ")
             
-            #self.engine.runAndWait()
+            self.engine.runAndWait()
             #self.engine.startLoop(True)
-            #time.sleep(5)
+            time.sleep(5)
             
 
         # After file is generated         
@@ -264,27 +274,11 @@ class VoiceOver:
 
 
      # Gets the Duration of the VoiceOver file and Saves it to VideoScript Class
-    def get_durationV2( self ,wav_file_path : str)-> float:
+    def get_durationV2( wav_file_path : str)-> float:
             try:  
-                
-                
-                # Probe it
-                stream_info = ffmpeg.probe(wav_file_path)
-                
-                # Get Audio File info
-                #print (stream_info)
-                
-                #Store Audio file details to class
-                self.audioName = stream_info['format']['filename']
+                return (ffmpeg.probe(wav_file_path)['format']["duration"]) # Audio Format debug
 
-                self.bit_rate = int(stream_info['format']['bit_rate'])
-                self.sizeBytes = int(stream_info['format']['size'])
-               
-                # Calculate Audio duration
                 
-                self.duration = (self.sizeBytes / self.bit_rate) #* 1000
-                print (self.duration)
-                return self.duration
                 
             except ffmpeg.Error as error:
                 print(f"ffmpeg Error: {str(error)}")
