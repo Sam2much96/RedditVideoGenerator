@@ -89,16 +89,17 @@ def __getContentFromPost(submission) -> VideoScript:
 
         if (addContent == True):
             failedAttempts += 1
-            print(f" failed attempts? {failedAttempts}/ add content {addContent}")
+            print(f" / add content {addContent}\ failed attempts? {failedAttempts}")
 
 
         if (content.canQuickFinish()) == True:
-            print (22222)
+            print ("can quick finish True")
             break
         if (failedAttempts > 3 and content.canBeFinished()):
-            print (111111)
+            print ("failed attempts > 3 && can quick finish True")
             break
         if (failedAttempts == 7):
+            print("failed attempts == 7")
             break
 
     #print(f"content debug: {content}")  # content debug
