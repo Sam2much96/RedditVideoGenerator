@@ -101,7 +101,7 @@ def createVideo():
     # Merge clips into single track
     # Centralize Reddit Screenshots
     contentOverlay = concatenate_videoclips(
-        clips).set_position(("center", "center"))
+        clips).set_position(("center", "top"))
 
     # Compose background/foreground
     final = CompositeVideoClip(
