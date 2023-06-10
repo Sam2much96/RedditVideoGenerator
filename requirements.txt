@@ -9,4 +9,5 @@ Pillow==9.0.1
 praw==7.7.0
 prawcore==2.3.0
 pyttsx3==2.90
+selenuim==4.10.0
 
