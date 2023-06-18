@@ -4,7 +4,8 @@ import pyttsx3  # for voiceovers
 import os
 import subprocess
 import ffmpeg
-# from mutagen.wave import WAVE
+import math
+# from mutagen.mp3 import MP3
 import time
 MAX_WORDS_PER_COMMENT = 100
 MIN_COMMENTS_FOR_FINISH = 4
@@ -16,8 +17,8 @@ class VideoScript:
     title: str = ""
     fileName: str = ""
     titleSCFile = ""
-    titleAudioDuration: int = 0
-    url = ""
+    titleAudioDuration: float
+    url: str = ""
 
     # Holds frame data
     frames = []
@@ -49,8 +50,10 @@ class VideoScript:
         self.frame = []
 
         # Set default duration
-        self.duration: float = 0  # Audio Clip duration
-        self.totalDuration: float = 0  # Audio Clip duration
+        self.duration: float  # Audio Clip duration
+        self.totalDuration: float  # Audio Clip duration
+
+        self.titleAudioDuration = self.duration
 
     def canBeFinished(self) -> bool:
         return_value_2: bool = (len(self.frames) > 0) and (
@@ -87,7 +90,7 @@ class VideoScript:
 
         # create comment voice over for comments
         self.frame.audioClip = self.__createVoiceOver(commentId, text)
-        self.frame.duration = self.duration
+        self.frame.audioClipDuration = self.duration
         print(f"frame debug: {self.frames} ")  # for debug purposes only
 
         # if (frame.audioClip == None):
@@ -124,12 +127,13 @@ class ScreenshotScene:
     screenShotFile = ""
     commentId = ""
     audioClip: AudioFileClip
+    audioClipDuration: float
 
     def __init__(self, text, commentId, audioClip) -> None:
         self.text = text
         self.commentId = commentId
         self.audioClip = audioClip
-        self.duration: float = 0
+        self.audioClipDuration: float = 0
 
 
 class VoiceOver:
@@ -148,7 +152,7 @@ class VoiceOver:
 
     bit_rate: int = engine.getProperty("rate")
 
-    duration = 0
+    duration: float = 0
     audioFile = ""  # Holds the Output stream for the Audio File
     audioName: str = ""  # Audio File name
     sizeBytes: int = 0
@@ -189,11 +193,7 @@ class VoiceOver:
 
         self.engine.save_to_file(text, self.filePath)
 
-<<<<<<< HEAD
-        # self.engine.runAndWait()
-=======
-        #self.engine.runAndWait()
->>>>>>> 1ad3e876b352faf005189ceb9df6cc6c8863c01f
+        #   self.engine.runAndWait()
 
         if (self.locate_or_generate_mp3(self)):
 
@@ -284,7 +284,7 @@ class VoiceOver:
     def get_durationV2(wav_file_path: str) -> float:
         try:
             # Audio Format debug
-            return (ffmpeg.probe(wav_file_path)['format']["duration"])
+            return int(math.ceil(float(ffmpeg.probe(wav_file_path)['format']["duration"])))
         except ffmpeg.Error as error:
             print(f"ffmpeg Error: {str(error)}")
 

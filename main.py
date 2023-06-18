@@ -48,9 +48,10 @@ def createVideo():
 
     # Renders Video
     # This method is called below
-    def __createClip(screenShotFile, audioClip, audioClipDuration: int, marginSize):
+    def __createClip(screenShotFile, audioClip, marginSize, audioClipDuration: float):
         # save each audio clip file name
         # save each audio clip duration using Wave method
+        print(script)  # for debug purposes only
 
         imageClip = ImageClip(
             screenShotFile,
@@ -76,23 +77,23 @@ def createVideo():
             script.titleSCFile,
             script.titleAudioClip,
             marginSize,
-            script.titleAudioDuration
+            int(math.ceil(script.titleAudioDuration))
         ))
 
-    print(f"Audio Duration debug: {script.titleAudioDuration}")
+    print(f"Title Audio Duration debug: {script.titleAudioDuration}")
 
     # Comments
     # These code blocs access sub classes vaariables
     # referencees the franes sub list in VideoScript Class
     for comment in script.frames:
-        print(f"Audio Duration debug: {comment.audioClipDuration}")
+        print(f"Comments Audio Duration debug: {comment.audioClipDuration}")
 
         clips.append(
             __createClip(
                 comment.screenShotFile,
                 comment.audioClip,
                 marginSize,
-                comment.audioClipDuration
+                int(math.ceil(comment.audioClipDuration))
 
             ))
 
