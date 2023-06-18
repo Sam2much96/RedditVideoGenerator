@@ -189,7 +189,11 @@ class VoiceOver:
 
         self.engine.save_to_file(text, self.filePath)
 
+<<<<<<< HEAD
         # self.engine.runAndWait()
+=======
+        #self.engine.runAndWait()
+>>>>>>> 1ad3e876b352faf005189ceb9df6cc6c8863c01f
 
         if (self.locate_or_generate_mp3(self)):
 
