@@ -64,6 +64,10 @@ def __getReddit():
 
 
 def __getContentFromPost(submission) -> VideoScript:
+    """
+    CREATES A VIDEOSCRIPT FROM A REDDIT POST
+    returns the videoscript class as a return
+    """
 
     # initialize videoscript class
 
@@ -79,29 +83,29 @@ def __getContentFromPost(submission) -> VideoScript:
     # Error catchers
 
     for comment in submission.comments:
-        #print(
+        # print(
         #    f" Comments: {markdown_to_text.markdown_to_text(comment.body), comment.id}")
 
         # Generates Voice Overs for each comment and Stores
         # Their info to Class variables for later use
-        addContent : bool = content.addCommentScene(markdown_to_text.markdown_to_text(comment.body), comment.id)
-
+        addContent: bool = content.addCommentScene(
+            markdown_to_text.markdown_to_text(comment.body), comment.id)
 
         if (addContent == True):
             failedAttempts += 1
-            print(f" failed attempts? {failedAttempts}/ add content {addContent}")
-
+            print(
+                f" failed attempts? {failedAttempts}/ add content {addContent}")
 
         if (content.canQuickFinish()) == True:
-            print (22222)
+            print(22222)
             break
         if (failedAttempts > 3 and content.canBeFinished()):
-            print (111111)
+            print(111111)
             break
         if (failedAttempts == 7):
             break
 
-    #print(f"content debug: {content}")  # content debug
+    # print(f"content debug: {content}")  # content debug
     return content
 
 
