@@ -1,4 +1,5 @@
 from moviepy.editor import *
+# from moviepy.video.io.ffmpeg_tools import ffmpeg_merge_video_audio
 import reddit
 import screenshot
 from videoscript import VoiceOver
@@ -8,7 +9,9 @@ import random
 import configparser
 import sys
 import math
-from os import listdir
+
+
+from os import listdir, system
 from os.path import isfile, join
 
 
@@ -160,12 +163,19 @@ class Render:
         bitrate = self.config["Video"]["Bitrate"]
         threads = self.config["Video"]["Threads"]
         outputFile = f"{self.outputDir}/{fileName}.mp4"
+
+        # Depreciating Python Video Writer in favour of OS.system calls
+
         final.write_videofile(
             outputFile,
             codec='mpeg4',
             threads=threads,
-            bitrate=bitrate
+            bitrate=bitrate,
+            fps=24
         )
+
+        # system(call)
+
         print(f"Video completed in {time.time() - self.startTime}")
 
         # VLC
@@ -175,6 +185,10 @@ class Render:
         #    p = subprocess.Popen([vlcPath, outputFile])
         #    print("Waiting for video review. Type anything to continue")
         #    wait = input()
+        call = f"vlc {outputFile}"
+        print(call)
+
+        system(call)
 
         print("Video is ready to upload!")
         print(f"Title: {script.title}  File: {outputFile}")
@@ -182,7 +196,7 @@ class Render:
         print(f"Total time: {endTime - self.startTime}")
 
         # Python Preview
-        outputFile.ipython_display(width=self.w)
+        # final.ipython_display(width=self.w)
 
 
 if __name__ == "__main__":
