@@ -139,19 +139,16 @@ class VideoScript:
         if name != "title":
             # Creates a VoiceOver using pytts
             # Returns a Tuple containing an Audio Clip file and it's duration as floats
-            # Changes Languague
-            # self.voiceover.engine.setProperty(
-            #   "voice", self.voiceover.voice[1].id)
+            # Set User Preferences
+            self.voiceover.engine.setProperty("voice", "english-us")
 
             audioClip, self.duration = self.voiceover.create_voice_over_linux(
                 f"{self.fileName}-{name}", text)
 
         if name == "title":
-            # Changes Languague
-            # Should Ideally be a parameter in the voiceover class
 
-            # self.voiceover.engine.setProperty(
-            #   "voice", self.voiceover.voice[0].id)
+            # Set User Preferences
+            self.voiceover.engine.setProperty("voice", "english_rp")
 
             audioClip, self.titleAudioDuration = self.voiceover.create_voice_over_linux(
                 f"{self.fileName}-{name}", text)
@@ -267,7 +264,7 @@ class VoiceOver:
         print(f"Creating Voicever :{ fileName} for user {UserName}")
         print(f"VoiceOver Engine Object {self.engine} for {fileName}")
 
-        absolute_path = f" /home/{UserName}/RedditVideoGenerator"
+        absolute_path = f"/home/{UserName}/RedditVideoGenerator"
         concat_filePath = f"{absolute_path}/{self.voiceoverDir}/{fileName}{self.format}"
 
         self.filePath = concat_filePath  # .encode('unicode_escape').decode()
@@ -276,7 +273,7 @@ class VoiceOver:
 
         #   self.engine.runAndWait()
 
-        if (self.locate_or_generate_mp3()):
+        if (self.locate_or_generate_mp3() == True):
 
             # Store File
             self.created_files.append(self.filePath)
@@ -294,6 +291,12 @@ class VoiceOver:
 
     # Locates of Generates the Voiceover file
     def locate_or_generate_mp3(self) -> bool:
+        """
+        Bugs: 
+
+        While loop on line 315 works but has no continuatity in the prgramming logic
+        """
+
         # A general purpose debugger for
         print("locating & Saving all .wav files in root dir")
 
@@ -305,12 +308,14 @@ class VoiceOver:
                 self.mp3_files.append(os.path.join(voiceovers_dir, file))
 
         # Checks if current file exists
+        # Buggy Condiional
         while not os.path.isfile(self.filePath):
-            print(f"File not found at path: {self.filePath}, generating ")
+            print(f"File not found at path:{self.filePath}, generating ")
+            print(os.path.isfile(self.filePath))
 
-            self.engine.runAndWait()
+            self.engine.runAndWait()  # Introduces a stuck bug into the program loop
             # self.engine.startLoop(True)
-            time.sleep(5)
+            time.sleep(2)
 
         # After file is generated
         if os.path.isfile(self.filePath):
@@ -384,23 +389,23 @@ class VoiceOver:
         """
         Supported Languages
 
-            -afrikaans
-            -aragonese
-            -bulgarian
-            -bengali
-            -bosnian
-            -catalan
-            -czech
-            -welsh
-            -german
-            -greek
-            -default
-            -english
-            -en-scottish
-            -english-north
-            -english_rp
-            -english_wmids
-            -english-us
+            0-afrikaans
+            1-aragonese
+            2-bulgarian
+            3-bengali
+            4-bosnian
+            5-catalan
+            6-czech
+            7-welsh
+            8-german
+            9-greek
+            10-default
+            11-english
+            12-en-scottish
+            13-english-north
+            14-english_rp
+            15-english_wmids
+            16-english-us
             -esperanto
             -spanish
             -spanish-latin-am
@@ -458,6 +463,9 @@ class VoiceOver:
         """
         for i in self.voices:
             print(i, i.id)
+
+        for q in self.voices:
+            print(q)
 
 
 class Functions:
