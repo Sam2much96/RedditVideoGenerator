@@ -9,8 +9,8 @@ import math
 import time
 
 # Constants
-MAX_WORDS_PER_COMMENT = 100
-MIN_COMMENTS_FOR_FINISH = 4
+MAX_WORDS_PER_COMMENT = 200
+MIN_COMMENTS_FOR_FINISH = 8
 MIN_DURATION = 20
 MAX_DURATION = 58
 
@@ -126,21 +126,33 @@ class VideoScript:
     def getAudioDuration(self):
         return self.duration
 
-    # Call Creatyte VoiceOVer from main script
+    # Call Create VoiceOVer from main script using Voiceover Class
+
     def __createVoiceOver(self, name, text) -> AudioFileClip:
         "LOGIC FOR CREATING VOICEOVER FILES"
 
         # Debug VOiceover class
-        print(self.voiceover)
+        print(f" Voiceover Object Debug:{self.voiceover}")
         print(f"Duration Debug: {self.duration}")
 
+        "LOGIC FOR CREATING TITLE AND COMMENT VOICEOVERS"
         if name != "title":
             # Creates a VoiceOver using pytts
             # Returns a Tuple containing an Audio Clip file and it's duration as floats
+            # Changes Languague
+            # self.voiceover.engine.setProperty(
+            #   "voice", self.voiceover.voice[1].id)
+
             audioClip, self.duration = self.voiceover.create_voice_over_linux(
                 f"{self.fileName}-{name}", text)
 
         if name == "title":
+            # Changes Languague
+            # Should Ideally be a parameter in the voiceover class
+
+            # self.voiceover.engine.setProperty(
+            #   "voice", self.voiceover.voice[0].id)
+
             audioClip, self.titleAudioDuration = self.voiceover.create_voice_over_linux(
                 f"{self.fileName}-{name}", text)
 
@@ -175,13 +187,32 @@ class ScreenshotScene:
 
 class VoiceOver:
 
+    """
+        It includes three TTS(Text-to-Speech) engines:
+
+        sapi5 : provides the male and female voice in Windows
+        nsss : provides the male and female voice in MAC-OS
+        espeak : provides the male and female voice in every other environment
+
+    """
+
     def __init__(self):
         # To DO:
         # (1) Implement Proper Engine Loop (done)
         # (2) Implement gender and voice changes as Class parameters
 
         voiceoverDir = "Voiceovers"
-        engine = pyttsx3.init("espeak", True)  # pyttsx3.init("sapi5", True)
+        engine = pyttsx3.init("espeak", True)
+
+        # Voice Types
+        voices = engine.getProperty("voices")
+
+        # Voice Rate
+        rate = engine.getProperty("rate")
+
+        # Volume
+        volume = engine.getProperty("volume")
+
         filePath: str = ''
 
         confirmed_files: list[str] = ['']
@@ -200,15 +231,17 @@ class VoiceOver:
         "Initialize Lifetimes"
 
         self.engine = engine
+        self.voices = voices
+        self.rate = rate
+        self.volume = volume
         self.voiceoverDir = voiceoverDir
-        # self.engine.runAndWait()
-        # self.engine.startLoop(True)
+
         self.filePath = filePath
         self.confirmed_files = confirmed_files
         self.created_files = created_files
         self.created_files = mp3_files
         self.bit_rate = bit_rate
-        self.duration = duration  # self.get_durationV2(self.filePath)
+        self.duration = duration
 
         self.audioFile = audioFile
         self.audioName = audioName
@@ -219,16 +252,22 @@ class VoiceOver:
         # All MP3 Files in Directory
         self.mp3_files = mp3_files
 
-    # Generates Voice over
-    # Runs as a Loop in main.py
-    # Generates Audio clip and stores generated clip data in Class Variables
+    """
+    - Generates Voice over
+    - Runs as a Loop in main.py
+    - Generates Audio clip and stores generated clip data in Class Variables
 
-    # -> AudioFileClip, float:
+    """
+
     def create_voice_over_linux(self, fileName, text):
+        func = Functions()
+        args = "whoami"
+        UserName = func.call_terminal(args)
 
-        print(f"Creating Voicever :{ fileName}")
-        print(self.engine)
-        absolute_path = r"/home/samuel/RedditVideoGenerator"
+        print(f"Creating Voicever :{ fileName} for user {UserName}")
+        print(f"VoiceOver Engine Object {self.engine} for {fileName}")
+
+        absolute_path = f" /home/{UserName}/RedditVideoGenerator"
         concat_filePath = f"{absolute_path}/{self.voiceoverDir}/{fileName}{self.format}"
 
         self.filePath = concat_filePath  # .encode('unicode_escape').decode()
@@ -299,16 +338,15 @@ class VoiceOver:
 
     # Gets the Duration of the VoiceOver file and Saves it to VideoScript Class
     def get_duration(mp3_file_path: str) -> float:
+        func = Functions()
         args = ("ffprobe", "-show_entries",
                 "format=duration", "-i", mp3_file_path)
-        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-        popen.wait()
-        output = popen.stdout.read()
 
-        # convert bytes to string
-        string = output.decode('utf-8')
+        # Runs an FFProbe Command using the Host Computer's Terminal
+        string = func.call_terminal(args)
 
-        if string != "":
+        # if string != "": # <- Depreciated
+        if string is not None:
             # for debug purposes only
             print(f" duration debug 1: {string}")
 
@@ -340,3 +378,97 @@ class VoiceOver:
             return audio.info.length
         except Exception as e:
             print(f"Error: {str(e)}")
+
+    def languages(self):
+        # Print sout the Voice ID for All Languages supported by pyttsx3
+        """
+        Supported Languages
+
+            -afrikaans
+            -aragonese
+            -bulgarian
+            -bengali
+            -bosnian
+            -catalan
+            -czech
+            -welsh
+            -german
+            -greek
+            -default
+            -english
+            -en-scottish
+            -english-north
+            -english_rp
+            -english_wmids
+            -english-us
+            -esperanto
+            -spanish
+            -spanish-latin-am
+            -estonian
+            -basque-test
+            -Persian+English-UK
+            -Persian+English-US
+            -finnish
+            -french-Belgium
+            -french
+            -irish-gaeilge
+            -greek-ancient
+            -gujarati-test
+            -hindi
+            -croatian
+            -hungarian
+            -armenian
+            -armenian-west
+            -interlingua
+            -indonesian
+            -icelandic
+            -italian
+            -georgian
+            -kannada
+            -kurdish
+            -latin
+            -lingua_franca_nova
+            -lithunian
+            -latvian
+            -macedonian
+            -malayalam
+            -malay
+            -nepali
+            -dutch
+            -norwegian
+            -punjabi
+            -polish
+            -brazil
+            -romanian
+            -russian
+            -slovak
+            -albanian
+            -serbian
+            -swedish
+            -swahili-test
+            -tamil
+            -telugu-test
+            -turkish
+            -vietnam
+            -vietnam_hue
+            -vietnam_sgn
+            -Mandarin
+            -cantonese
+
+        """
+        for i in self.voices:
+            print(i, i.id)
+
+
+class Functions:
+    def __init__(self):
+        pass
+
+    def call_terminal(self, args) -> str:
+        "Makes An Argument  Call to Terminal"
+
+        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        popen.wait()
+        output: str = popen.stdout.read().decode("utf-8").strip()
+
+        return output
