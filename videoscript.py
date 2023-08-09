@@ -161,8 +161,14 @@ class VideoScript:
         print(f"Total Duration {self.totalDuration}")
 
         # Error checker 2
+        # Bug 1 :
+        # - Shouldn't return None Object. Instead, Loop Again.
         if (self.getDuration() + float(self.duration) > MAX_DURATION):
-            print(1111111)
+            duration_calc = self.getDuration() + float(self.duration)
+
+            print(
+                f" Duration Calc : {duration_calc} > Max Duration: {MAX_DURATION}So,Returns a None Object")
+
             return None
 
         return audioClip
@@ -296,7 +302,7 @@ class VoiceOver:
 
         While loop on line 315 works but has no continuatity in the prgramming logic
         """
-
+        x = 0
         # A general purpose debugger for
         print("locating & Saving all .wav files in root dir")
 
@@ -309,13 +315,20 @@ class VoiceOver:
 
         # Checks if current file exists
         # Buggy Condiional
+        # Runs As Loop
         while not os.path.isfile(self.filePath):
+
             print(f"File not found at path:{self.filePath}, generating ")
-            print(os.path.isfile(self.filePath))
+
+            # For Debug Purposes only
+            print(
+                f' CHecking for  Audio File{x} times >>>>>{os.path.isfile(self.filePath)}')
+            x += 1
 
             self.engine.runAndWait()  # Introduces a stuck bug into the program loop
             # self.engine.startLoop(True)
             time.sleep(2)
+            print("Sleeping for 2 Seconds")
 
         # After file is generated
         if os.path.isfile(self.filePath):
@@ -323,11 +336,13 @@ class VoiceOver:
 
             return True
 
+        # Save Files to Global Class Array
         if not self.filePath in self.confirmed_files:
             # append confirmed file path to list
             self.confirmed_files.append(self.filePath)
             return True
 
+        # Debug Conditional
         if self.Debug:
             # Get Audio File
             in_stream = ffmpeg.input(self.filePath)
