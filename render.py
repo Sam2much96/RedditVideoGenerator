@@ -1,6 +1,6 @@
 import reddit
 import screenshot
-from videoscript import VoiceOver
+from videoscript import VoiceOver, VideoScript
 
 from moviepy.editor import *
 
@@ -37,10 +37,10 @@ class Render:
     """
 
 
-
     def __init__(self):
-        # Create Debug Variables for video file
-        # (!) Final Clip Size : Vector2
+        
+        
+
 
         # Final Video Size
         self.w: int = 0
@@ -52,7 +52,7 @@ class Render:
         self.outputDir = self.config["General"]["OutputDirectory"]
 
         self.startTime = time.time()
-    
+        self.script : VideoScript = None
 
     
     
@@ -66,7 +66,7 @@ class Render:
         if (len(sys.argv) == 2):
 
             # Creates a Video Script Class from A Reddit Post Content ID
-            script = reddit.getContentFromId(self.outputDir, sys.argv[1])
+            self.script = reddit.getContentFromId(self.outputDir, sys.argv[1])
         else:
             # Auto Selects Content
 
@@ -74,11 +74,12 @@ class Render:
                 self.config["Reddit"]["NumberOfPostsToSelectFrom"])
 
             # Creates a Video Script Class
-            script = reddit.getContent(self.outputDir, postOptionCount)
-        fileName = script.getFileName()
+            self.script = reddit.getContent(self.outputDir, postOptionCount)
+   
+        fileName = self.script.getFileName()
 
-        # Create screenshots
-        screenshot.getPostScreenshots(fileName, script)
+        # Create screenshots for Video Script Object
+        screenshot.getPostScreenshots(fileName, self.script)
 
         # Setup background clip
         bgDir = self.config["General"]["BackgroundDirectory"]
@@ -90,7 +91,7 @@ class Render:
         bgIndex = random.randint(0, bgCount-1)
         backgroundVideo = VideoFileClip(
             filename=f"{bgDir}/{bgPrefix}{bgIndex}.mp4",
-            audio=False).subclip(0, script.getDuration())
+            audio=False).subclip(0, self.script.getDuration())
         w, h = backgroundVideo.size
 
         print(f" Background Video Resolution: {w} x {h}")
@@ -98,12 +99,12 @@ class Render:
         # Renders Video
         # A function within a class
         # This method is called below
-        def __createClip(screenShotFile, audioClip, marginSize, audioClipDuration: float):
+        def __createClip(screenShotFile, audioClip, marginSize, audioClipDuration: float) -> ImageClip:
             # save each audio clip file name
             # save each audio clip duration using Wave method
-            print(f" Script Debug : {script}")  # for debug purposes only
+            print(f" Script Debug : {self.script}")  # for debug purposes only
 
-            imageClip = ImageClip(
+            imageClip : ImageClip = ImageClip(
                 screenShotFile,
                 duration=audioClipDuration
             ).set_position(("center", "center"))
@@ -125,10 +126,10 @@ class Render:
         print("Editing clips together...")
 
         print(
-            f"Title Duration debug 1: {float2int(script.titleAudioDuration)}")
+            f"Title Duration debug 1: {float2int(self.script.titleAudioDuration)}")
 
         print(
-            f"Title Duration debug 2: {script.titleAudioDuration}")
+            f"Title Duration debug 2: {self.script.titleAudioDuration}")
         # Holds all Generated CLips
         clips = []
         marginSize = int(self.config["Video"]["MarginSize"])
@@ -149,10 +150,10 @@ class Render:
 
         clips.append(
             __createClip(
-                script.titleSCFile,
-                script.titleAudioClip,
+                self.script.titleSCFile,
+                self.script.titleAudioClip,
                 marginSize,
-                script.titleAudioDuration
+                self.script.titleAudioDuration
             ))
 
         # print(f"Title Audio Duration debug 2: {script.titleAudioDuration}")
@@ -162,7 +163,7 @@ class Render:
         # Comments
         # These code blocs access sub classes vaariables
         # referencees the franes sub list in VideoScript Class
-        for comment in script.frames:
+        for comment in self.script.frames:
             print(
                 f"Comments Audio Duration debug: {comment.audioClipDuration}")
 
@@ -177,13 +178,13 @@ class Render:
 
         print("Adding Tag")
 
-        #clips.append(
-        #        __createClip(
-        #            comment.screenShotFile,
-        #            comment.audioClip,
-         #           marginSize,
-          #          comment.audioClipDuration
-          #      ))
+        clips.append(
+                __createClip(
+                    self.script.TagscreenShotFile,
+                    self.script.WaterTag,
+                    marginSize,
+                    self.script.TagDuration
+                ))
 
         # Merge clips into single track
         contentOverlay = concatenate_videoclips(
@@ -193,7 +194,7 @@ class Render:
         final = CompositeVideoClip(
             clips=[backgroundVideo, contentOverlay],
             size=backgroundVideo.size).set_audio(contentOverlay.audio)
-        final.duration = script.getDuration()
+        final.duration = self.script.getDuration()
         final.set_fps(backgroundVideo.fps)
 
         # Display Video Render Size Features
@@ -239,7 +240,7 @@ class Render:
         system(call)
 
         print("Video is ready to upload!")
-        print(f"Title: {script.title}  File: {outputFile}")
+        print(f"Title: {self.script.title}  File: {outputFile}")
         endTime = time.time()
         print(f"Total time: {endTime - self.startTime}")
 

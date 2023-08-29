@@ -50,6 +50,10 @@ class VoiceOver:
         Debug = False
         format: str = ".mp3"  # audio file format
 
+        # A Self Counter for Running the Audio File Generatoin Loop
+        # A bug fix for the locate_or_generate() method buggy while loop
+        counter : int = 0 
+
         "Initialize Lifetimes"
 
         self.engine = engine
@@ -74,6 +78,7 @@ class VoiceOver:
         # All MP3 Files in Directory
         self.mp3_files = mp3_files
 
+        self.counter = counter
     """
     - Generates Voice over
     - Runs as a Loop in main.py
@@ -121,7 +126,7 @@ class VoiceOver:
 
         While loop on line 315 works but has no continuatity in the prgramming logic
         """
-        x = 0
+        #x = 0
         # A general purpose debugger for
         print("locating & Saving all .wav files in root dir")
 
@@ -135,19 +140,22 @@ class VoiceOver:
         # Checks if current file exists
         # Buggy Condiional
         # Runs As Loop
-        while not os.path.isfile(self.filePath):
+        
+        while not bool(os.path.isfile(self.filePath)) and (self.counter < 5):
 
             print(f"File not found at path:{self.filePath}, generating ")
 
             # For Debug Purposes only
             print(
-                f' CHecking for  Audio File{x} times >>>>>{os.path.isfile(self.filePath)}')
-            x += 1
+                f' CHecking for  Audio File {self.counter} times >>>>>{os.path.isfile(self.filePath)}')
+            self.counter += 1
 
             self.engine.runAndWait()  # Introduces a stuck bug into the program loop
             # self.engine.startLoop(True)
             time.sleep(2)
-            print("Sleeping for 2 Seconds")
+            
+            print("Slept for 2 Seconds, Exiting Program")
+            #exit()
 
         # After file is generated
         if os.path.isfile(self.filePath):

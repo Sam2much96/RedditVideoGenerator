@@ -1,13 +1,13 @@
 from datetime import datetime
+from voiceover import VoiceOver
 from moviepy.editor import AudioFileClip
 
-from voiceover import VoiceOver
 
 # Constants
 MAX_WORDS_PER_COMMENT = 100
 MIN_COMMENTS_FOR_FINISH = 8
 MIN_DURATION = 20
-MAX_DURATION = 100
+MAX_DURATION = 150
 
 
 class VideoScript:
@@ -26,23 +26,10 @@ class VideoScript:
                  audioClip: AudioFileClip
                  ):
 
-        # title: str = ""
-        fileName: str = ""
-        titleSCFile = ""
-        titleAudioDuration: float
-        # url: str = ""
-
-        # Holds frame data
-        frames = []
-
-        # Holds subclass data for the comments videos
-        frame = []
 
         file_path = ""
 
-        titleAudioClip = AudioFileClip
-        # audioClip = AudioFileClip
-
+     
         bit_rate: int = 0
         totalDuration: float = 0
 
@@ -61,7 +48,10 @@ class VideoScript:
         self.file_path = file_path
         self.audioClip = audioClip
 
+        "Holds frame data"
         self.frames = []
+
+        " Holds subclass data for the comments videos"
         self.frame = []
 
         # Set default duration
@@ -73,7 +63,20 @@ class VideoScript:
         # Create Title Audio clip using voiceover pointer class
         # Bug : Creates an unnecessary loop seeing as the voiceover class can be called DIrectly
         # Bug: Skips the initilization phaze of the class which fails to build necessary classes for the Object
-        self.titleAudioClip = self.__createVoiceOver("title", title)
+        self.titleAudioClip : AudioFileClip = self.__createVoiceOver("title", title)
+
+
+
+        """
+        Adds Water Tag Scene As a subclass
+        
+        """
+    
+        #Tag Items
+        # ScreenShot File Cut in the Dime4nsion of ScreenShot Objects
+        self.TagscreenShotFile : str = "YTBanner2.png"
+        self.WaterTag : AudioFileClip = self.__createVoiceOver("tag"," Like and Subscribe to continue to enjoy more content like this")
+        self.TagDuration : float = 0
 
     def canBeFinished(self) -> bool:
         return_value_2: bool = (len(self.frames) > 0) and (
@@ -122,41 +125,6 @@ class VideoScript:
         return True
 
 
-    """
-    Adds Water Tag Scene As a subclass
-    
-    """
-    def addWaterTagScene(self) -> bool:
-        print('adding water tag scene')
-
-        
-        tag : str =" Like and Subscribe to continue to enjoy more content "
-        
-        # Get the word count
-        wordCount = len(tag.split())
-        print(f"Word Count is : {wordCount}")
-
-        if (wordCount > MAX_WORDS_PER_COMMENT):
-            return True
-
-        # Saves Comments Information to Sub Class List
-        self.frame: self.ScreenShotScene = ScreenshotScene(
-            tag,
-            "",
-            self.__createVoiceOver("watertag", tag)
-        )
-
-        # create comment voice over for comments
-        self.frame.audioClip = self.__createVoiceOver("watertag", tag)
-        self.frame.audioClipDuration = self.duration
-        print(f"frame debug: {self.frames} ")  # for debug purposes only
-
-        # if (frame.audioClip == None):
-        #    return True
-        self.frames.append(self.frame)
-        return True
-
-
 
     def getDuration(self) -> float:
         return self.totalDuration
@@ -177,7 +145,9 @@ class VideoScript:
         print(f"Duration Debug: {self.duration}")
 
         "LOGIC FOR CREATING TITLE AND COMMENT VOICEOVERS"
-        if name != "title":
+        
+        "General Logic"
+        if name != "title" or "tag":
             # Creates a VoiceOver using pytts
             # Returns a Tuple containing an Audio Clip file and it's duration as floats
             # Set User Preferences
@@ -186,12 +156,21 @@ class VideoScript:
             audioClip, self.duration = self.voiceover.create_voice_over_linux(
                 f"{self.fileName}-{name}", text)
 
+        "Title Logic"
         if name == "title":
 
             # Set User Preferences
             self.voiceover.engine.setProperty("voice", "english_rp")
 
             audioClip, self.titleAudioDuration = self.voiceover.create_voice_over_linux(
+                f"{self.fileName}-{name}", text)
+
+        "Tag Logic"
+        if name == "tag":
+            # Set User Preferences
+            self.voiceover.engine.setProperty("voice", "spanish-latin-am")
+
+            audioClip, self.TagDuration = self.voiceover.create_voice_over_linux(
                 f"{self.fileName}-{name}", text)
 
         # Store the Audio duration to the class
