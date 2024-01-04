@@ -70,8 +70,7 @@ class Render:
         else:
             # Auto Selects Content
 
-            postOptionCount = int(
-                self.config["Reddit"]["NumberOfPostsToSelectFrom"])
+            postOptionCount = int(self.config["Reddit"]["NumberOfPostsToSelectFrom"])
 
             # Creates a Video Script Class
             self.script = reddit.getContent(self.outputDir, postOptionCount)
@@ -187,8 +186,11 @@ class Render:
                 ))
 
         # Merge clips into single track
+        # Sets screenshot position on Clip
+        # "center", "center" - FOr center Position
+        # "center", "top" - For Top Position
         contentOverlay = concatenate_videoclips(
-            clips).set_position(("center", "center"))
+            clips).set_position(("center", "top"))
 
         # Compose background/foreground
         final = CompositeVideoClip(

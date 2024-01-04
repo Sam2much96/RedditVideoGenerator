@@ -75,7 +75,7 @@ class VideoScript:
         #Tag Items
         # ScreenShot File Cut in the Dime4nsion of ScreenShot Objects
         self.TagscreenShotFile : str = "YTBanner2.png"
-        self.WaterTag : AudioFileClip = self.__createVoiceOver("tag"," Like and Subscribe to continue to enjoy more content like this")
+        self.WaterTag : AudioFileClip = self.__createVoiceOver("tag","Like and Subscribe, bruh, Happy New Year!")
         self.TagDuration : float = 0
 
     def canBeFinished(self) -> bool:
@@ -168,7 +168,7 @@ class VideoScript:
         "Tag Logic"
         if name == "tag":
             # Set User Preferences
-            self.voiceover.engine.setProperty("voice", "spanish-latin-am")
+            self.voiceover.engine.setProperty("voice", "Persian+English-US")
 
             audioClip, self.TagDuration = self.voiceover.create_voice_over_linux(
                 f"{self.fileName}-{name}", text)
