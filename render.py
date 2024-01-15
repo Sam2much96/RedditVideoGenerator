@@ -189,8 +189,9 @@ class Render:
         # Sets screenshot position on Clip
         # "center", "center" - FOr center Position
         # "center", "top" - For Top Position
+        # Documentation : https://zulko.github.io/moviepy/ref/VideoClip/VideoClip.html?highlight=set_position#moviepy.video.VideoClip.ImageClip.set_position
         contentOverlay = concatenate_videoclips(
-            clips).set_position(("center", "top"))
+            clips).set_position(lambda t: ('center', 1050))
 
         # Compose background/foreground
         final = CompositeVideoClip(
