@@ -30,17 +30,20 @@ from videoscript import VideoScript
 
 
 def getPostScreenshots(filePrefix : str, script : VideoScript):
+    #print("file name: ",filePrefix)
+    print("file id: ", script.fileId)
 
     # initialize web driver
     driver, wait = __setupDriver(script.url)
 
     # create a screen shot and store the file path to videoscript file
-    script.titleSCFile = __takeScreenshot(filePrefix, driver, wait, f"t5_{0}") 
+    # formatted string is addapted to Reddit's New UI divs
+    script.titleSCFile = __takeScreenshot(filePrefix, driver, wait, f"post-title-t3_{script.fileId}") 
     
     # save comments screenshots using comment id
     for commentFrame in script.frames:
         commentFrame.screenShotFile = __takeScreenshot(
-            filePrefix, driver, wait, f"t1_{commentFrame.commentId}")
+            filePrefix, driver, wait, f"t1_{commentFrame.commentId}-comment-rtjson-content")
     
     # quit selenium driver
     driver.quit()
@@ -50,7 +53,7 @@ def __takeScreenshot(filePrefix : str, driver, wait, handle="") -> str:
     # Selector Conditional
     # Docs: https://www.selenium.dev/selenium/docs/api/py/webdriver/selenium.webdriver.common.by.html
     #
-    if (handle == "Post"):
+    if (handle == "post"):
         method = By.CLASS_NAME
     else:
         method = By.ID

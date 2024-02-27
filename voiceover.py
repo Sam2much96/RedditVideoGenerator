@@ -90,7 +90,7 @@ class VoiceOver:
 
     """
 
-    def create_voice_over_linux(self, fileName, text):
+    def create_voice_over_linux(self, fileName : str, text : str):
         func = Functions()
         args = "whoami"
         UserName = func.call_terminal(args)

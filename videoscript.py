@@ -21,8 +21,8 @@ class VideoScript:
     def __init__(self,
                  url: str,
                  title: str,
-                 fileId,
-                 file_path,
+                 fileId : str,
+                 file_path : str,
                  audioClip: AudioFileClip
                  ):
 
@@ -36,6 +36,9 @@ class VideoScript:
         # Initialize voiceover class
         voiceover = VoiceOver()
 
+        # title screenshot file path
+        self.titleSCFile : str 
+        self.fileId : str = fileId
         # Pointer to voiceover class
         # Bug: If not created first, breaks line 59 self.titleAudioClip. Bad code implementation from the main fork
         self.voiceover = voiceover
@@ -98,7 +101,7 @@ class VideoScript:
     Adds Comment Scene As a subclass
     
     """
-    def addCommentScene(self, text, commentId) -> bool:
+    def addCommentScene(self, text : str, commentId) -> bool:
         print(f'adding comment {commentId} scene')
         # Get the word count
         wordCount = len(text.split())
@@ -137,7 +140,7 @@ class VideoScript:
 
     # Call Create VoiceOVer from main script using Voiceover Class
 
-    def __createVoiceOver(self, name, text) -> AudioFileClip:
+    def __createVoiceOver(self, name : str, text : str) -> AudioFileClip:
         "LOGIC FOR CREATING VOICEOVER FILES"
 
         # Debug VOiceover class
@@ -195,9 +198,9 @@ class VideoScript:
 
 
 class ScreenshotScene:
-    text = ""
-    screenShotFile = ""
-    commentId = ""
+    text : str = ""
+    screenShotFile : str = ""
+    commentId : str = ""
     audioClip: AudioFileClip
     audioClipDuration: float
 

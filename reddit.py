@@ -31,7 +31,7 @@ class Reddit:
 
 
     def getContent(self,outputDir : str, postOptionCount : int) -> VideoScript:
-        #reddit = self.
+        #Gets existing post id's by parsing a regex file though the outpot file directiory
         existingPostIds = self.__getExistingPostIds(outputDir)
 
         now = int(time.time())
@@ -42,20 +42,26 @@ class Reddit:
         #print(posts) # for saving post id and comment id on new reddit ui
 
         # CUrates the Reddit / Sub Reddit Post
+        # iterate through the reddit praw posts
         for submission in self.reddit_praw.subreddit(self.SUBREDDIT).top(time_filter="day", limit=postOptionCount*3):
+
+            # If concat submisson id + .mp4 exits in output folder or if submission is over 18, continue
             if (f"{submission.id}.mp4" in existingPostIds or submission.over_18):
                 continue
-            hoursAgoPosted = (now - submission.created_utc) / 3600
+            hoursAgoPosted : float = (now - submission.created_utc) / 3600
             print(f"[{len(posts)}] {submission.title}     {submission.score}    {'{:.1f}'.format(hoursAgoPosted)} hours ago")
             posts.append(submission)
             if (autoSelect or len(posts) >= postOptionCount):
                 break
+        
+        #print(posts) # for debug purposes only
 
         "Collets User Input for Reddit Posts"
         if (autoSelect):
             return self.__getContentFromPost(posts[0])
         else:
             postSelection = int(input("Input: "))
+            # select a post from the post list array
             selectedPost = posts[postSelection]
             return self.__getContentFromPost(selectedPost)
 
@@ -90,12 +96,12 @@ class Reddit:
         """
 
         # initialize videoscript class
-
+        # create an empty cideo class with no path only titles and ids
         content: VideoScript = VideoScript(
             submission.url, submission.title,
             submission.id, "", None)
 
-        print(f"Creating video for post: {submission.title}")
+        print(f"Creating video for post: {submission.title} / {submission.id}")
         print(f"Url: {submission.url}")
         # print (content)
 
