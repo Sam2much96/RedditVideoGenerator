@@ -14,7 +14,7 @@ USER_AGENT = config["Reddit"]["USER_AGENT"]
 SUBREDDIT = config["Reddit"]["SUBREDDIT"]
 
 
-def getContent(outputDir, postOptionCount) -> VideoScript:
+def getContent(outputDir : str, postOptionCount) -> VideoScript:
     reddit = __getReddit()
     existingPostIds = __getExistingPostIds(outputDir)
 
@@ -40,7 +40,7 @@ def getContent(outputDir, postOptionCount) -> VideoScript:
         return __getContentFromPost(selectedPost)
 
 
-def getContentFromId(outputDir, submissionId) -> VideoScript:
+def getContentFromId(outputDir : str, submissionId) -> VideoScript:
     reddit = __getReddit()
     existingPostIds = __getExistingPostIds(outputDir)
 
@@ -91,6 +91,7 @@ def __getContentFromPost(submission) -> VideoScript:
         addContent: bool = content.addCommentScene(
             markdown_to_text.markdown_to_text(comment.body), comment.id)
 
+        # Nested If's? Code Smell   
         if (addContent == True):
             failedAttempts += 1
             print(
@@ -113,5 +114,6 @@ def __getExistingPostIds(outputDir):
     files = os.listdir(outputDir)
     # I'm sure anyone knowledgeable on python hates this. I had some weird
     # issues and frankly didn't care to troubleshoot. It works though...
+    # Regex :(
     files = [f for f in files if os.path.isfile(outputDir+'/'+f)]
     return [re.sub(r'.*?-', '', file) for file in files]

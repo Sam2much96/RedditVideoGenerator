@@ -16,7 +16,11 @@ class VoiceOver:
         nsss : provides the male and female voice in MAC-OS
         espeak : provides the male and female voice in every other environment
 
+
     """
+    # TO DO: Modify Voiceover script to be a stand alone script
+    # Implement Type Safety
+
 
     def __init__(self):
         # To DO:

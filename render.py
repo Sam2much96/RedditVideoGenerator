@@ -1,6 +1,6 @@
 import reddit
 import screenshot
-from videoscript import VoiceOver, VideoScript
+from videoscript import VideoScript
 
 from moviepy.editor import *
 
@@ -49,9 +49,9 @@ class Render:
         # Load User Config Files
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
-        self.outputDir = self.config["General"]["OutputDirectory"]
+        self.outputDir : str = self.config["General"]["OutputDirectory"]
 
-        self.startTime = time.time()
+        self.startTime : float = time.time()
         self.script : VideoScript = None
 
     
@@ -191,7 +191,7 @@ class Render:
         # "center", "top" - For Top Position
         # Documentation : https://zulko.github.io/moviepy/ref/VideoClip/VideoClip.html?highlight=set_position#moviepy.video.VideoClip.ImageClip.set_position
         contentOverlay = concatenate_videoclips(
-            clips).set_position(lambda t: ('center', 1050))
+            clips).set_position(lambda t: ('center', 950))
 
         # Compose background/foreground
         final = CompositeVideoClip(

@@ -4,10 +4,10 @@ from moviepy.editor import AudioFileClip
 
 
 # Constants
-MAX_WORDS_PER_COMMENT = 100
+MAX_WORDS_PER_COMMENT = 150
 MIN_COMMENTS_FOR_FINISH = 8
 MIN_DURATION = 20
-MAX_DURATION = 150
+MAX_DURATION = 200
 
 
 class VideoScript:
@@ -40,7 +40,7 @@ class VideoScript:
         # Bug: If not created first, breaks line 59 self.titleAudioClip. Bad code implementation from the main fork
         self.voiceover = voiceover
 
-        self.fileName = f"{datetime.today().strftime('%Y-%m-%d')}-{fileId}"
+        self.fileName : str = f"{datetime.today().strftime('%Y-%m-%d')}-{fileId}"
         self.url = url
         self.title = title
 
@@ -75,7 +75,7 @@ class VideoScript:
         #Tag Items
         # ScreenShot File Cut in the Dime4nsion of ScreenShot Objects
         self.TagscreenShotFile : str = "YTBanner2.png"
-        self.WaterTag : AudioFileClip = self.__createVoiceOver("tag","Like and Subscribe, bruh, Let's Take This Channel To The Moon!")
+        self.WaterTag : AudioFileClip = self.__createVoiceOver("tag","Let's Take This Channel To 1000 Subs! hashtag Subscribe Now, my Neeg!")
         self.TagDuration : float = 0
 
     def canBeFinished(self) -> bool:
@@ -129,7 +129,7 @@ class VideoScript:
     def getDuration(self) -> float:
         return self.totalDuration
 
-    def getFileName(self):
+    def getFileName(self) -> str:
         return self.fileName
 
     def getAudioDuration(self):
