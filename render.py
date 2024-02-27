@@ -75,7 +75,8 @@ class Render:
 
             # Creates a Video Script Class
             self.script = self.reddit.getContent(self.outputDir, postOptionCount)
-   
+
+        # concat of todays date + post id
         fileName = self.script.getFileName()
 
         # Create screenshots for Video Script Object
@@ -91,7 +92,7 @@ class Render:
         bgIndex = random.randint(0, bgCount-1)
         backgroundVideo = VideoFileClip(
             filename=f"{bgDir}/{bgPrefix}{bgIndex}.mp4",
-            audio=False).subclip(0, self.script.getDuration())
+            audio=False).subclip(0, self.script.voiceover.getDuration())
         w, h = backgroundVideo.size
 
         print(f" Background Video Resolution: {w} x {h}")
@@ -123,13 +124,14 @@ class Render:
                 return x
 
         # Create video clips
+        # Voiceover Debug
         print("Editing clips together...")
 
         print(
-            f"Title Duration debug 1: {float2int(self.script.titleAudioDuration)}")
+            f"Title Duration debug 1: {float2int(self.script.voiceover.titleAudioDuration)}")
 
         print(
-            f"Title Duration debug 2: {self.script.titleAudioDuration}")
+            f"Title Duration debug 2: {self.script.voiceover.titleAudioDuration}")
         # Holds all Generated CLips
         clips = []
         marginSize = int(self.config["Video"]["MarginSize"])
@@ -153,7 +155,7 @@ class Render:
                 self.script.titleSCFile,
                 self.script.titleAudioClip,
                 marginSize,
-                self.script.titleAudioDuration
+                self.script.voiceover.titleAudioDuration
             ))
 
         # print(f"Title Audio Duration debug 2: {script.titleAudioDuration}")
@@ -198,7 +200,7 @@ class Render:
         final = CompositeVideoClip(
             clips=[backgroundVideo, contentOverlay],
             size=backgroundVideo.size).set_audio(contentOverlay.audio)
-        final.duration = self.script.getDuration()
+        final.duration = self.script.voiceover.getDuration()
         final.set_fps(backgroundVideo.fps)
 
         # Display Video Render Size Features

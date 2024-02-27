@@ -7,6 +7,14 @@ import math
 # from mutagen.mp3 import MP3
 import time
 
+
+# Constants
+MAX_WORDS_PER_COMMENT : int = 150
+MIN_COMMENTS_FOR_FINISH : int = 8
+MIN_DURATION : int = 20
+MAX_DURATION : int = 200
+
+
 class VoiceOver:
 
     """
@@ -20,6 +28,9 @@ class VoiceOver:
     """
     # TO DO: Modify Voiceover script to be a stand alone script
     # Implement Type Safety
+
+
+
 
 
     def __init__(self):
@@ -83,6 +94,14 @@ class VoiceOver:
         self.mp3_files = mp3_files
 
         self.counter = counter
+
+
+        # Audio DUrations
+        # Set default duration
+        self.duration: float = 0  # Audio Clip duration
+        self.totalDuration: float = 0 #totalDuration  # Audio Clip duration
+
+        self.titleAudioDuration: float = 0
     """
     - Generates Voice over
     - Runs as a Loop in main.py
@@ -212,6 +231,9 @@ class VoiceOver:
 
             return float_value
 
+
+    def getDuration(self) -> float:
+        return self.totalDuration
  # Gets the Duration of the VoiceOver file and Saves it to VideoScript Class
     def get_durationV2(self) -> float:
         try:
@@ -314,6 +336,63 @@ class VoiceOver:
         for q in self.voices:
             print(q)
 
+# Call Create VoiceOVer from main script using Voiceover Class
+# pass in the path as a parameter
+    def createVoiceOver(self, name : str, fileName : str ,text : str) -> AudioFileClip:
+        "LOGIC FOR CREATING VOICEOVER FILES"
+
+        # Debug VOiceover class
+        #print(f" Voiceover Object Debug:{self.voiceover}") # Depreciated Debug
+        print(f"Duration Debug: {self.duration}")
+
+        "LOGIC FOR CREATING TITLE AND COMMENT VOICEOVERS"
+        # Refactored        
+        "General Logic"
+        if name != "title" or "tag":
+            # Creates a VoiceOver using pytts
+            # Returns a Tuple containing an Audio Clip file and it's duration as floats
+            # Set User Preferences
+            self.engine.setProperty("voice", "english-us")
+
+            audioClip, self.duration = self.create_voice_over_linux(
+                f"{fileName}-{name}", text)
+
+            "Title Logic"
+        if name == "title":
+
+            # Set User Preferences
+            self.engine.setProperty("voice", "english_rp")
+
+            audioClip, self.titleAudioDuration = self.create_voice_over_linux(
+                f"{fileName}-{name}", text)
+
+            "Tag Logic"
+        if name == "tag":
+            # Set User Preferences
+            self.engine.setProperty("voice", "french")
+
+            audioClip, self.TagDuration = self.create_voice_over_linux(
+                f"{fileName}-{name}", text)
+
+        # Store the Audio duration to the class
+        # Unless the totalDUration class is't created because the Init() methoid isnt called on creation
+        self.totalDuration += float(self.duration)
+
+        # Display Total DUration
+        print(f"Total Duration {self.totalDuration}")
+
+        # Error checker 2
+        # BUG :
+        # - Shouldn't return None Object. Instead, Loop Again.
+        if (self.getDuration() + float(self.duration) > MAX_DURATION):
+            duration_calc = self.getDuration() + float(self.duration)
+
+            print(
+                f" Duration Calc : {duration_calc} > Max Duration: {MAX_DURATION}So,Returns a None Object")
+
+            return None
+
+        return audioClip
 
 class Functions:
     def __init__(self):

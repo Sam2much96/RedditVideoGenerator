@@ -29,7 +29,7 @@ from videoscript import VideoScript
 # dom.find/</<@chrome://remote/content/shared/DOM.sys.mjs:136:16
 
 
-def getPostScreenshots(filePrefix : str, script : VideoScript):
+def getPostScreenshots(filePrefix : str, script : VideoScript) -> None:
     #print("file name: ",filePrefix)
     print("file id: ", script.fileId)
 
