@@ -1,4 +1,4 @@
-import reddit
+from reddit import Reddit
 import screenshot
 from videoscript import VideoScript
 
@@ -54,7 +54,8 @@ class Render:
         self.startTime : float = time.time()
         self.script : VideoScript = None
 
-    
+        # pointer to reddit object
+        self.reddit = Reddit()    
     
     """
     Creates Regular Video Posts
@@ -66,14 +67,14 @@ class Render:
         if (len(sys.argv) == 2):
 
             # Creates a Video Script Class from A Reddit Post Content ID
-            self.script = reddit.getContentFromId(self.outputDir, sys.argv[1])
+            self.script = self.reddit.getContentFromId(self.outputDir, sys.argv[1])
         else:
             # Auto Selects Content
 
             postOptionCount = int(self.config["Reddit"]["NumberOfPostsToSelectFrom"])
 
             # Creates a Video Script Class
-            self.script = reddit.getContent(self.outputDir, postOptionCount)
+            self.script = self.reddit.getContent(self.outputDir, postOptionCount)
    
         fileName = self.script.getFileName()
 
