@@ -101,12 +101,14 @@ class Reddit:
             submission.url, submission.title,
             submission.id, "", None)
 
-        print(f"Creating video for post: {submission.title} / {submission.id}")
-        print(f"Url: {submission.url}")
-        # print (content)
+        print(f"Creating video for post: {content.title} / {content.fileId}")
+        print(f"Url: {content.url}")
+        
 
         failedAttempts = 0
         # Error catchers
+
+        # TO DO : Write a Conditional Excluding Auto Mod Bots from submission comments
 
         for comment in submission.comments:
             # print(
