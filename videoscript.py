@@ -6,49 +6,46 @@ from moviepy.editor import AudioFileClip
 
 # Constants
 # TO DO: Depreciate constants into voiceover class
-MAX_WORDS_PER_COMMENT : int = 150
-MIN_COMMENTS_FOR_FINISH : int = 8
-MIN_DURATION : int = 20
-MAX_DURATION : int = 200
+MAX_WORDS_PER_COMMENT: int = 100
+MIN_COMMENTS_FOR_FINISH: int = 8
+MIN_DURATION: int = 20
+MAX_DURATION: int = 100
 
 
 class VideoScript:
     """
-    VIDEOSCRIPT IS THE MAIN SCRIPT OBJECT OF THIS CODEBASE.
-    CONTAINS POINTERS TO REQUIRED AUDIO & VIDEO FILES
-    RETURNS INFO TOO
+    Videoscript Is thie main script object datatype &
+    contains pointers to required Audio & Video Files
+
 
     Contains the Script File, Image FIle and Render Duration 
     Of All On Screen Objects & Audio
-    
+
     """
 
     def __init__(self,
                  url: str,
                  title: str,
-                 fileId : str,
-                 file_path : str,
+                 fileId: str,
+                 file_path: str,
                  audioClip: AudioFileClip
                  ):
 
-
         file_path = ""
 
-     
         bit_rate: int = 0
-        #totalDuration: float = 0
-
+        # totalDuration: float = 0
+        print("file id debug: ", fileId)
         # Initialize voiceover class
-        #voiceover = VoiceOver()
+        # voiceover = VoiceOver()
 
         # title screenshot file path
-        self.titleSCFile : str 
-        self.fileId : str = fileId
+        self.titleSCFile: str
+        self.fileId: str = fileId
         # Pointer to voiceover class
-        # Bug: If not created first, breaks line 59 self.titleAudioClip. Bad code implementation from the main fork
         self.voiceover = VoiceOver()
 
-        self.fileName : str = f"{datetime.today().strftime('%Y-%m-%d')}-{fileId}"
+        self.fileName: str = f"{datetime.today().strftime('%Y-%m-%d')}-{fileId}"
         self.url = url
         self.title = title
 
@@ -60,31 +57,19 @@ class VideoScript:
         self.frames = []
 
         " Holds subclass data for the comments videos"
-        self.frame = []
+        self.frame: ScreenshotScene = None
 
-        
-        
-        #self._ready(self.voiceover, self.title)
+        # creates the title
+        # bug: (1) creates tag and title objects twice?
+        self.titleAudioClip: AudioFileClip = self.voiceover.createVoiceOver(
+            "title", self.fileName, title)
 
-    #   def _ready(self, local_voiceover: VoiceOver, title : str) -> None:
-        # Create Title Audio clip using voiceover pointer class
-        # BUG : Creates an unnecessary loop seeing as the voiceover class can be called DIrectly
-        # BUG: Skips the initilization phaze of the class which fails to build necessary classes for the Object
-        self.titleAudioClip : AudioFileClip = self.voiceover.createVoiceOver("title",self.fileName, title)
-
-
-
-        """
-        Adds Water Tag Scene As a subclass
-        
-        """
-    
-        #Tag Items
-        # ScreenShot File Cut in the Dime4nsion of ScreenShot Objects
-        self.TagscreenShotFile : str = "YTBanner2.png"
-        self.WaterTag : AudioFileClip = self.voiceover.createVoiceOver("tag",self.fileName,"We're Back! Thanks for 140 subs")
-        self.TagDuration : float = 0
-    
+        # Tag Items
+        # note: ScreenShot File Cut in the Dime4nsion of ScreenShot Objects
+        self.TagscreenShotFile: str = "YTBanner2.png"
+        self.WaterTag: AudioFileClip = self.voiceover.createVoiceOver(
+            "tag", self.fileName, "Thanks for 170 Subs! ma Ninja's .Video Game Link In Bio, support a small youtuber!")
+        self.TagDuration: float = 0
 
     def canBeFinished(self) -> bool:
         return_value_2: bool = (len(self.frames) > 0) and (
@@ -102,11 +87,12 @@ class VideoScript:
         return return_value
         # return True
 
-    """
-    Adds Comment Scene As a subclass
-    
-    """
-    def addCommentScene(self, text : str, commentId) -> bool:
+    def addCommentScene(self, text: str, commentId) -> bool:
+        """
+        Adds Comment Scene As an object within
+        the videoscript scene
+
+        """
         print(f'adding comment {commentId} scene')
         # Get the word count
         wordCount = len(text.split())
@@ -115,16 +101,22 @@ class VideoScript:
         if (wordCount > MAX_WORDS_PER_COMMENT):
             return True
 
+        # create comment voice over for comments
+        audioClip = self.voiceover.createVoiceOver(
+            commentId, self.getFileName(), text)
+
+        audioClipDuration = self.voiceover.duration
+
+        # Create A screenshot comment scene instance
         # Saves Comments Information to Sub Class List
-        self.frame: self.ScreenShotScene = ScreenshotScene(
+        self.frame = ScreenshotScene(
             text,
             commentId,
-            self.voiceover.createVoiceOver(commentId, self.getFileName(),text)
+            audioClip
         )
 
-        # create comment voice over for comments
-        self.frame.audioClip = self.voiceover.createVoiceOver(commentId, self.getFileName(),text)
-        self.frame.audioClipDuration = self.voiceover.duration
+        self.frame.setAudioClipDuration(audioClipDuration)
+
         print(f"frame debug: {self.frames} ")  # for debug purposes only
 
         # if (frame.audioClip == None):
@@ -132,26 +124,36 @@ class VideoScript:
         self.frames.append(self.frame)
         return True
 
-
     def getFileName(self) -> str:
         self.fileName = f"{datetime.today().strftime('%Y-%m-%d')}-{self.fileId}"
         return self.fileName
 
     def getAudioDuration(self) -> float:
-        return self.voiceover.duration    
+        return self.voiceover.duration
 
 
 class ScreenshotScene:
-    text : str = ""
-    screenShotFile : str = ""
-    commentId : str = ""
+    """
+    Screen Shot Data Structure as an Object 
+    Containing Audio, Text and Audio duration data
+    """
+
+    text: str = ""
+    screenShotFile: str = ""
+    commentId: str = ""
     audioClip: AudioFileClip
     audioClipDuration: float
 
-    def __init__(self, text, commentId, audioClip) -> None:
+    def __init__(self, text: str, commentId: str, audioClip: AudioFileClip) -> None:
         self.text = text
         self.commentId = commentId
         self.audioClip = audioClip
         self.audioClipDuration: float = 0
 
+    def setAudioClipDuration(self, duration: float):
+        """Assign audio clip and duration safely"""
+        self.audioClipDuration = duration
 
+    # def getAudioDuration(self) -> float:
+    #    """Getter for audio clip duration"""
+    #    return self.audioClipDuration

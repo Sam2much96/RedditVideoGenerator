@@ -10,3 +10,6 @@ pyvenv.cfg
 client_secrets.json
 geckodriver.log
 config.ini
+VLC_media_player-3.0.19-20230410-x86_64.AppImage
+venv/
+YTBanner2.png.kra

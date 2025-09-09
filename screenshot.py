@@ -1,3 +1,13 @@
+"""
+Screenshot.py
+
+Features:
+(1) Takes screenshots of the reddit post title and comments
+(2) Uses The comment's and titles div id + selenium to take the screenshots
+
+Bugs:
+(1) Doesn't screenshot post boarders and dp, only the comments and text
+"""
 import configparser
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -17,16 +27,7 @@ screenHeight : int= 800
 # Import Video Script for access to class for type safety
 from videoscript import VideoScript
 
-# BUG: Breaks when Reddit loads Dark mode. Only works in Lightmode Reddit.
-# BUG : Reddit Updated Reddit UI to mobile breaking divs.
-# TO DO: Refactor code to use id's instead
-#
-# selenium.common.exceptions.TimeoutException: Message: 
-# Stacktrace:
-# RemoteError@chrome://remote/content/shared/RemoteError.sys.mjs:8:8
-# WebDriverError@chrome://remote/content/shared/webdriver/Errors.sys.mjs:191:5
-# NoSuchElementError@chrome://remote/content/shared/webdriver/Errors.sys.mjs:509:5
-# dom.find/</<@chrome://remote/content/shared/DOM.sys.mjs:136:16
+
 
 
 def getPostScreenshots(filePrefix : str, script : VideoScript) -> None:
@@ -53,6 +54,7 @@ def __takeScreenshot(filePrefix : str, driver, wait, handle="") -> str:
     # Selector Conditional
     # Docs: https://www.selenium.dev/selenium/docs/api/py/webdriver/selenium.webdriver.common.by.html
     #
+    print("Handle debug: ", handle)
     if (handle == "post"):
         method = By.CLASS_NAME
     else:
@@ -61,16 +63,22 @@ def __takeScreenshot(filePrefix : str, driver, wait, handle="") -> str:
     print("Taking screenshots...")
     print ("Method: ",method, "/Handle:", handle) # for debug purposes only
     # BUG: EC breaks code in above bug 2
-    search = wait.until(EC.presence_of_element_located((method, handle)))
+    try:
+        search = wait.until(EC.presence_of_element_located((method, handle)))
+        # print(search)
+        driver.execute_script("window.focus();")
 
-    # print(search)
-    driver.execute_script("window.focus();")
+        fileName : str= f"{screenshotDir}/{filePrefix}-{handle}.png"
+        fp = open(fileName, "wb")
+        fp.write(search.screenshot_as_png)
+        fp.close()
+        return fileName
+    except :
+        print(f"Error: Selenium.common.exceptions.TImeoutExceptions timeout error")
 
-    fileName : str= f"{screenshotDir}/{filePrefix}-{handle}.png"
-    fp = open(fileName, "wb")
-    fp.write(search.screenshot_as_png)
-    fp.close()
-    return fileName
+
+    
+    
 
 
 def __setupDriver(url: str):
@@ -84,13 +92,21 @@ def __setupDriver(url: str):
     options.profile = profile
     options.headless = False
     options.enable_mobile = False
+    options.set_preference("dom.webdriver.enabled", False)  # helps bypass bot detection
+    options.set_preference("useAutomationExtension", False)
+
+
 
     driver = webdriver.Firefox(options=options)
-
-    # driver = webdriver.Firefox(profile)
-    wait = WebDriverWait(driver, 10)
-
     driver.set_window_size(width=screenWidth, height=screenHeight)
-    driver.get(url)
+    driver.set_page_load_timeout(80)  # 80s max wait
+    try: 
+        driver.get(url)
+    except Exception as e:
+        print(f"[WARN] Page load failed or timed out: {e}")
+        # try a lighter load (stop loading scripts/images if needed)
+        driver.execute_script("window.stop();")
+    
+    wait = WebDriverWait(driver, 10)
 
     return driver, wait

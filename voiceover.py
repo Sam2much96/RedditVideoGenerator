@@ -1,4 +1,19 @@
-import pyttsx3  # for voiceovers
+"""
+Voiceover.py
+
+Features:
+(1) Records reddit posts using libespeak text to speech on linux
+(2) Uses pyttsx3
+
+Bugs:
+(1) Voice over creation logic hangs on linux devices, the logic would need reworking
+(2) Class Object gets converted to string object sometime during run
+(3) Eleven labs api costs too much, replace voiceover api with Coqui TTS 88mb model : https://chatgpt.com/c/68bac41f-03ec-832e-b0cf-d795a39b8490
+"""
+
+# from gtts import gTTS  # type: ignore
+# import pyttsx3  # for voiceovers
+from TTS.api import TTS
 from moviepy.editor import AudioFileClip
 import os
 import subprocess
@@ -6,13 +21,16 @@ import ffmpeg
 import math
 # from mutagen.mp3 import MP3
 import time
-
+import traceback  # for debugging function stack
+import configparser
+# from elevenlabs import save  # type: ignore
+# from elevenlabs.client import ElevenLabs  # type: ignore
 
 # Constants
-MAX_WORDS_PER_COMMENT : int = 150
-MIN_COMMENTS_FOR_FINISH : int = 8
-MIN_DURATION : int = 20
-MAX_DURATION : int = 200
+MAX_WORDS_PER_COMMENT: int = 150
+MIN_COMMENTS_FOR_FINISH: int = 8
+MIN_DURATION: int = 20
+MAX_DURATION: int = 92
 
 
 class VoiceOver:
@@ -29,186 +47,29 @@ class VoiceOver:
     # TO DO: Modify Voiceover script to be a stand alone script
     # Implement Type Safety
 
-
-
-
-
     def __init__(self):
-        # To DO:
-        # (1) Implement Proper Engine Loop (done)
-        # (2) Implement gender and voice changes as Class parameters
 
-        voiceoverDir = "Voiceovers"
-        engine = pyttsx3.init("espeak", True)
+        self.voiceoverDir = "Voiceovers"
+        os.makedirs(self.voiceoverDir, exist_ok=True)
 
-        # Voice Types
-        voices = engine.getProperty("voices")
+        self.filePath: str = ""
+        self.confirmed_files: list[str] = []
+        self.created_files: list[str] = []
+        self.mp3_files: list[str] = []
 
-        # Voice Rate
-        rate = engine.getProperty("rate")
-
-        # Volume
-        volume = engine.getProperty("volume")
-
-        filePath: str = ''
-
-        confirmed_files: list[str] = ['']
-        mp3_files: list[str] = []
-        created_files: list[str] = []
-
-        bit_rate: int = engine.getProperty("rate")
-
-        duration: float = 0
-        audioFile = ""  # Holds the Output stream for the Audio File
-        audioName: str = ""  # Audio File name
-        sizeBytes: int = 0
-        Debug = False
-        format: str = ".mp3"  # audio file format
-
-        # A Self Counter for Running the Audio File Generatoin Loop
-        # A bug fix for the locate_or_generate() method buggy while loop
-        counter : int = 0 
-
-        "Initialize Lifetimes"
-
-        self.engine = engine
-        self.voices = voices
-        self.rate = rate
-        self.volume = volume
-        self.voiceoverDir = voiceoverDir
-
-        self.filePath = filePath
-        self.confirmed_files = confirmed_files
-        self.created_files = created_files
-        self.created_files = mp3_files
-        self.bit_rate = bit_rate
-        self.duration = duration
-
-        self.audioFile = audioFile
-        self.audioName = audioName
-        self.sizeBytes = sizeBytes
-        self.Debug = Debug
-        self.format = format
-
-        # All MP3 Files in Directory
-        self.mp3_files = mp3_files
-
-        self.counter = counter
-
-
-        # Audio DUrations
-        # Set default duration
-        self.duration: float = 0  # Audio Clip duration
-        self.totalDuration: float = 0 #totalDuration  # Audio Clip duration
-
+        self.duration: float = 0
+        self.totalDuration: float = 0
         self.titleAudioDuration: float = 0
-    """
-    - Generates Voice over
-    - Runs as a Loop in main.py
-    - Generates Audio clip and stores generated clip data in Class Variables
+        self.audioFile = ""
+        self.audioName: str = ""
+        # self.format: str = ".mp3"
 
-    """
-
-    def create_voice_over_linux(self, fileName : str, text : str):
-        func = Functions()
-        args = "whoami"
-        UserName = func.call_terminal(args)
-
-        print(f"Creating Voicever :{ fileName} for user {UserName}")
-        print(f"VoiceOver Engine Object {self.engine} for {fileName}")
-
-        absolute_path = f"/home/{UserName}/RedditVideoGenerator"
-        concat_filePath = f"{absolute_path}/{self.voiceoverDir}/{fileName}{self.format}"
-
-        self.filePath = concat_filePath  # .encode('unicode_escape').decode()
-
-        self.engine.save_to_file(text, self.filePath)
-
-        #   self.engine.runAndWait()
-
-        if (self.locate_or_generate_mp3() == True):
-
-            # Store File
-            self.created_files.append(self.filePath)
-
-            self.duration = self.get_durationV2()  # self.filePath
-
-            # for debug purposes
-            print(
-                f"Duration debug 2: {self.duration} / Path: {self.filePath} / Cr8ted Files: {self.created_files}")
-
-            # Loads the Generated audo clip && returns it
-            # Breaks here because audio file isnt generated
-            # filePath # audioName
-            return AudioFileClip(self.filePath), self.duration
-
-    # Locates of Generates the Voiceover file
-    def locate_or_generate_mp3(self) -> bool:
-        """
-        Bugs: 
-
-        While loop on line 315 works but has no continuatity in the prgramming logic
-        """
-        #x = 0
-        # A general purpose debugger for
-        print("locating & Saving all .wav files in root dir")
-
-        # Search the "Voiceovers" subdirectory
-        voiceovers_dir = os.path.join(".", "Voiceovers")
-
-        for file in os.listdir(voiceovers_dir):
-            if file.endswith(self.format):
-                self.mp3_files.append(os.path.join(voiceovers_dir, file))
-
-        # Checks if current file exists
-        # Buggy Condiional
-        # Runs As Loop
-        
-        while not bool(os.path.isfile(self.filePath)) and (self.counter < 5):
-
-            print(f"File not found at path:{self.filePath}, generating ")
-
-            # For Debug Purposes only
-            print(
-                f' CHecking for  Audio File {self.counter} times >>>>>{os.path.isfile(self.filePath)}')
-            self.counter += 1
-
-            self.engine.runAndWait()  # Introduces a stuck bug into the program loop
-            # self.engine.startLoop(True)
-            time.sleep(2)
-            
-            print("Slept for 2 Seconds, Exiting Program")
-            #exit()
-
-        # After file is generated
-        if os.path.isfile(self.filePath):
-            print(f" Generated: {self.filePath}")
-
-            return True
-
-        # Save Files to Global Class Array
-        if not self.filePath in self.confirmed_files:
-            # append confirmed file path to list
-            self.confirmed_files.append(self.filePath)
-            return True
-
-        # Debug Conditional
-        0.
-        if self.Debug:
-            # Get Audio File
-            in_stream = ffmpeg.input(self.filePath)
-
-            # Copy it
-            out_stream = ffmpeg.output(in_stream, str(
-                "testing--" + self.filePath), f="wav")
-
-            # Let FFmpeg process audio file for debugging
-            out_stream.run()
-
-        return False
-
-    # Gets the Duration of the VoiceOver file and Saves it to VideoScript Class
     def get_duration(mp3_file_path: str) -> float:
+        """
+        Gets the Duration of the VoiceOver file and Saves it to VideoScript Class
+
+        """
+
         func = Functions()
         args = ("ffprobe", "-show_entries",
                 "format=duration", "-i", mp3_file_path)
@@ -216,7 +77,6 @@ class VoiceOver:
         # Runs an FFProbe Command using the Host Computer's Terminal
         string = func.call_terminal(args)
 
-        # if string != "": # <- Depreciated
         if string is not None:
             # for debug purposes only
             print(f" duration debug 1: {string}")
@@ -231,148 +91,96 @@ class VoiceOver:
 
             return float_value
 
-
-    def getDuration(self) -> float:
+    def getTotalDuration(self) -> float:
         return self.totalDuration
  # Gets the Duration of the VoiceOver file and Saves it to VideoScript Class
-    def get_durationV2(self) -> float:
-        try:
-            # Audio Format debug
-            return int(math.ceil(float(ffmpeg.probe(self.filePath)['format']["duration"])))
-        except ffmpeg.Error as error:
-            print(f"ffmpeg Error: {str(error)}")
 
-    def get_durationV3(self, wav_file_path) -> float:
-        try:
-            # Copy the Wav file using ffmpeg input
-
-            audio = WAVE(wav_file_path)
-            print(f"Duration Debug 3: {audio.info.length}")
-
-            return audio.info.length
-        except Exception as e:
-            print(f"Error: {str(e)}")
-
-    def languages(self):
-        # Print sout the Voice ID for All Languages supported by pyttsx3
+    def createVoiceOver(self, name: str, fileName: str, text: str) -> AudioFileClip:
         """
-        Supported Languages
+        Create VoiceOver Function
 
-            0-afrikaans
-            1-aragonese
-            2-bulgarian
-            3-bengali
-            4-bosnian
-            5-catalan
-            6-czech
-            7-welsh
-            8-german
-            9-greek
-            10-default
-            11-english
-            12-en-scottish
-            13-english-north
-            14-english_rp
-            15-english_wmids
-            16-english-us
-            -esperanto
-            -spanish
-            -spanish-latin-am
-            -estonian
-            -basque-test
-            -Persian+English-UK
-            -Persian+English-US
-            -finnish
-            -french-Belgium
-            -french
-            -irish-gaeilge
-            -greek-ancient
-            -gujarati-test
-            -hindi
-            -croatian
-            -hungarian
-            -armenian
-            -armenian-west
-            -interlingua
-            -indonesian
-            -icelandic
-            -italian
-            -georgian
-            -kannada
-            -kurdish
-            -latin
-            -lingua_franca_nova
-            -lithunian
-            -latvian
-            -macedonian
-            -malayalam
-            -malay
-            -nepali
-            -dutch
-            -norwegian
-            -punjabi
-            -polish
-            -brazil
-            -romanian
-            -russian
-            -slovak
-            -albanian
-            -serbian
-            -swedish
-            -swahili-test
-            -tamil
-            -telugu-test
-            -turkish
-            -vietnam
-            -vietnam_hue
-            -vietnam_sgn
-            -Mandarin
-            -cantonese
+            Features: 
+            (0) Wraps the gTTS voiceover wrapper for videoscript.py
+            (1) Call Create VoiceOVer from main script using Voiceover Class
+            (2) pass in the path as a parameter
+            (3) returns an audio clip file
 
+            Bugs:
+            (1) Creates multiple class instace per voice over and is memory wastefull
         """
-        for i in self.voices:
-            print(i, i.id)
+        model_name = "tts_models/en/ljspeech/tacotron2-DDC"
+        tts = TTS(model_name=model_name, progress_bar=True,
+                  gpu=False)  # ElevenLabs(api_key=api_key)
+        # print("TTS debug: ", tts)
 
-        for q in self.voices:
-            print(q)
+        @staticmethod
+        def get_durationV2(filepath: str) -> float:
+            try:
+                # Audio Format debug
+                return int(math.ceil(float(ffmpeg.probe(filepath)['format']["duration"])))
+            except ffmpeg.Error as error:
+                print(f"ffmpeg Error: {str(error)}")
 
-# Call Create VoiceOVer from main script using Voiceover Class
-# pass in the path as a parameter
-    def createVoiceOver(self, name : str, fileName : str ,text : str) -> AudioFileClip:
-        "LOGIC FOR CREATING VOICEOVER FILES"
+        def create_voice_over_linux(self, fileName: str, text: str) -> tuple[AudioFileClip, float]:
+            """
+            Create voiceover with gTTS and return AudioFileClip
 
-        # Debug VOiceover class
-        #print(f" Voiceover Object Debug:{self.voiceover}") # Depreciated Debug
-        print(f"Duration Debug: {self.duration}")
+            """
+            voiceoverDir = "Voiceovers"
+            # filepath = ""
+            concat_filePath = os.path.join(
+                voiceoverDir, f"{fileName}.mp3")
+
+            filePath = concat_filePath
+
+            print("first check if file already exists in a previous failed run")
+            print(f"🔊 Creating Voiceover: {fileName} / {filePath}")
+            # traceback.print_stack(limit=5)  # limit avoids huge dumps
+
+            # Documentations:
+            # (1) https://github.com/elevenlabs/elevenlabs-python?tab=readme-ov-file
+            # Generate TTS with elevenLabs
+            # audio = TTS.text_to_speech.convert(
+            #    text=text,
+            #    voice_id="JBFqnCBsd6RMkjVDRZzb",
+            #    model_id="eleven_flash_v2_5",
+            #    output_format="mp3_44100_128"
+            # )
+
+            tts.tts_to_file(text=text, file_path=filePath)
+
+            # save(audio, filePath)
+
+            # tts.save(filePath)
+
+            # Register as created
+            # self.created_files.append(self.filePath)
+            duration = get_durationV2(filepath=filePath)
+
+            return AudioFileClip(filePath), duration
+
+        print(f"Duration Debug: {self.duration} / name : {name}")
 
         "LOGIC FOR CREATING TITLE AND COMMENT VOICEOVERS"
-        # Refactored        
+        # Refactored
         "General Logic"
-        if name != "title" or "tag":
-            # Creates a VoiceOver using pytts
-            # Returns a Tuple containing an Audio Clip file and it's duration as floats
-            # Set User Preferences
-            self.engine.setProperty("voice", "english-us")
 
-            audioClip, self.duration = self.create_voice_over_linux(
-                f"{fileName}-{name}", text)
-
-            "Title Logic"
+        "Title Logic"
         if name == "title":
 
-            # Set User Preferences
-            self.engine.setProperty("voice", "english_rp")
-
-            audioClip, self.titleAudioDuration = self.create_voice_over_linux(
-                f"{fileName}-{name}", text)
+            audioClip, self.titleAudioDuration = create_voice_over_linux(
+                name, f"{fileName}-{name}", text)
 
             "Tag Logic"
-        if name == "tag":
-            # Set User Preferences
-            self.engine.setProperty("voice", "french")
+        elif name == "tag":
 
-            audioClip, self.TagDuration = self.create_voice_over_linux(
-                f"{fileName}-{name}", text)
+            audioClip, self.TagDuration = create_voice_over_linux(
+                name, f"{fileName}-{name}", text)
+
+        else:
+
+            audioClip, self.duration = create_voice_over_linux(
+                name, f"{fileName}-{name}", text)
 
         # Store the Audio duration to the class
         # Unless the totalDUration class is't created because the Init() methoid isnt called on creation
@@ -384,8 +192,8 @@ class VoiceOver:
         # Error checker 2
         # BUG :
         # - Shouldn't return None Object. Instead, Loop Again.
-        if (self.getDuration() + float(self.duration) > MAX_DURATION):
-            duration_calc = self.getDuration() + float(self.duration)
+        if (self.getTotalDuration() + float(self.duration) > MAX_DURATION):
+            duration_calc = self.getTotalDuration() + float(self.duration)
 
             print(
                 f" Duration Calc : {duration_calc} > Max Duration: {MAX_DURATION}So,Returns a None Object")
@@ -393,6 +201,7 @@ class VoiceOver:
             return None
 
         return audioClip
+
 
 class Functions:
     def __init__(self):

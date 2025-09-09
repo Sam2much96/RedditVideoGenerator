@@ -16,31 +16,22 @@ from os import listdir, system
 from os.path import isfile, join
 
 
-
 class Render:
     """
     RUNS THE RENDER SCRIPT FOR THE MAIN VIDEO LOOP, 
     CONTAINING POINTERS TO ALL REQUIRED SUB CLASSES
-      AND ELEMENTS
-    
-            Bugs:
-        (1)
-
+    AND ELEMENTS
 
 
     Features:
 
     TO-DO:
         (1) Implement Threads
-        (2) Re-Factor Voiceover Again
-    
+
+
     """
 
-
     def __init__(self):
-        
-        
-
 
         # Final Video Size
         self.w: int = 0
@@ -49,17 +40,18 @@ class Render:
         # Load User Config Files
         self.config = configparser.ConfigParser()
         self.config.read('config.ini')
-        self.outputDir : str = self.config["General"]["OutputDirectory"]
+        self.outputDir: str = self.config["General"]["OutputDirectory"]
 
-        self.startTime : float = time.time()
-        self.script : VideoScript = None
+        self.startTime: float = time.time()
+        self.script: VideoScript = None
 
         # pointer to reddit object
-        self.reddit = Reddit()    
-    
+        self.reddit = Reddit()
+
     """
     Creates Regular Video Posts
     """
+
     def createVideo(self):
 
         # Get script from reddit
@@ -67,14 +59,19 @@ class Render:
         if (len(sys.argv) == 2):
 
             # Creates a Video Script Class from A Reddit Post Content ID
-            self.script = self.reddit.getContentFromId(self.outputDir, sys.argv[1])
+            self.script = self.reddit.getContentFromId(
+                self.outputDir, sys.argv[1])
         else:
             # Auto Selects Content
-
-            postOptionCount = int(self.config["Reddit"]["NumberOfPostsToSelectFrom"])
+            print("AutoSelect Debug 0: ",
+                  self.config["Reddit"]["NumberOfPostsToSelectFrom"])
+            postOptionCount = int(
+                self.config["Reddit"]["NumberOfPostsToSelectFrom"])
+            print(f"AutoSelect Debug 1: {postOptionCount}")
 
             # Creates a Video Script Class
-            self.script = self.reddit.getContent(self.outputDir, postOptionCount)
+            self.script = self.reddit.getContent(
+                self.outputDir, postOptionCount)
 
         # concat of todays date + post id
         fileName = self.script.getFileName()
@@ -92,7 +89,7 @@ class Render:
         bgIndex = random.randint(0, bgCount-1)
         backgroundVideo = VideoFileClip(
             filename=f"{bgDir}/{bgPrefix}{bgIndex}.mp4",
-            audio=False).subclip(0, self.script.voiceover.getDuration())
+            audio=False).subclip(0, self.script.voiceover.getTotalDuration())
         w, h = backgroundVideo.size
 
         print(f" Background Video Resolution: {w} x {h}")
@@ -105,7 +102,7 @@ class Render:
             # save each audio clip duration using Wave method
             print(f" Script Debug : {self.script}")  # for debug purposes only
 
-            imageClip : ImageClip = ImageClip(
+            imageClip: ImageClip = ImageClip(
                 screenShotFile,
                 duration=audioClipDuration
             ).set_position(("center", "center"))
@@ -115,9 +112,9 @@ class Render:
             return videoClip
 
         def float2int(x) -> int:
-            #COnverts a float to int else returns an int
+            # COnverts a float to int else returns an int
 
-            #print(type(x))
+            # print(type(x))
             if x is float:
                 return int(math.ceil(x))
             if x is int:
@@ -148,7 +145,6 @@ class Render:
                 -with a Longer Max Comment Constant
             (2) Renders at a fixed 24 FPS for optimized performance
         """
-
 
         clips.append(
             __createClip(
@@ -181,12 +177,12 @@ class Render:
         print("Adding Tag")
 
         clips.append(
-                __createClip(
-                    self.script.TagscreenShotFile,
-                    self.script.WaterTag,
-                    marginSize,
-                    self.script.TagDuration
-                ))
+            __createClip(
+                self.script.TagscreenShotFile,
+                self.script.WaterTag,
+                marginSize,
+                self.script.TagDuration
+            ))
 
         # Merge clips into single track
         # Sets screenshot position on Clip
@@ -200,8 +196,9 @@ class Render:
         final = CompositeVideoClip(
             clips=[backgroundVideo, contentOverlay],
             size=backgroundVideo.size).set_audio(contentOverlay.audio)
-        final.duration = self.script.voiceover.getDuration()
-        final.set_fps(backgroundVideo.fps)
+        final.duration = self.script.voiceover.getTotalDuration()
+
+        # final.set_fps(backgroundVideo.fps)
 
         # Display Video Render Size Features
         self.w = final.w
@@ -219,14 +216,18 @@ class Render:
         threads = self.config["Video"]["Threads"]
         outputFile = f"{self.outputDir}/{fileName}.mp4"
 
+        # debug parameters
+        # print ("t",threads,"/b", bitrate)
+
         # Render Video
 
         final.write_videofile(
             outputFile,
+            # {final.h,final.w},
+            fps=24.0,
             codec='mpeg4',
-            threads=threads,
             bitrate=bitrate,
-            fps=24
+            threads=threads,
         )
 
         # system(call)
@@ -252,4 +253,3 @@ class Render:
 
         # Python Preview
         # final.ipython_display(width=self.w)
-
